@@ -43,10 +43,9 @@ namespace GPS_Utils {
         #else
         disableGPS = Config.disableGPS;
         #endif
-        if (disableGPS) {
-            logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Main", "GPS disabled");
+        logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Main", disableGPS ? "GPS: disabled" : "GPS: enabled");
+        if (disableGPS)
             return;
-        }
         neo6m_gps.begin(GPS_BAUD, SERIAL_8N1, GPS_TX, GPS_RX);
     }
 
