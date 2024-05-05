@@ -83,7 +83,7 @@ namespace LoRa_Utils {
         }
         String currentLoRainfo = "LoRa " + loraCountryFreq + " / Freq: " + String(currentLoRaType->frequency)  + " / SF:" + String(currentLoRaType->spreadingFactor) + " / CR: " + String(currentLoRaType->codingRate4);
         logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "LoRa", currentLoRainfo.c_str());
-        show_display("LORA FREQ>", "", "CHANGED TO: " + loraCountryFreq, "", "", "", 2000);
+        show_display({"LORA FREQ>", "", "CHANGED TO: " + loraCountryFreq, "", "", ""}, 2000);
     }
 
     void setup() {
@@ -129,7 +129,7 @@ namespace LoRa_Utils {
         long freq = currentLoRaType->frequency;
         if (!LoRa.begin(freq)) {
             logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "LoRa", "Starting LoRa failed!");
-            show_display("ERROR", "Starting LoRa failed!");
+            show_display({"ERROR"}, "Starting LoRa failed!");
             while (true) {
                 delay(1000);
             }

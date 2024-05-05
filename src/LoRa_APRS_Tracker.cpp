@@ -163,7 +163,7 @@ void setup() {
         workingFreq += "UK]";
     }
 
-    show_display(" LoRa APRS", "      (TRACKER)", workingFreq, "", "Richonguzman / CA2RXU", "      " + versionDate, 4000);
+    show_display({" LoRa APRS", "      (TRACKER)", workingFreq, "", "Richonguzman / CA2RXU", "      " + versionDate}, 4000);
     #ifdef HAS_TFT
     cleanTFT();
     #endif

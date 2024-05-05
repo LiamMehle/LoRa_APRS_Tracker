@@ -117,7 +117,7 @@ namespace MSG_Utils {
                 fileToRead = SPIFFS.open("/aprsMessages.txt");
             }
             if (noAPRSMsgWarning) {
-                show_display("___INFO___", "", " NO APRS MSG SAVED", 1500);
+                show_display({"___INFO___", "", " NO APRS MSG SAVED"}, 1500);
             } else {
                 if(!fileToRead) {
                     Serial.println("Failed to open file for reading");
@@ -137,7 +137,7 @@ namespace MSG_Utils {
                 fileToRead = SPIFFS.open("/winlinkMails.txt");
             }
             if (noWLNKMsgWarning) {
-                show_display("___INFO___", "", " NO WLNK MAILS SAVED", 1500);
+                show_display({"___INFO___", "", " NO WLNK MAILS SAVED"}, 1500);
             } else {
                 if(!fileToRead) {
                     Serial.println("Failed to open file for reading");
@@ -224,15 +224,15 @@ namespace MSG_Utils {
         #endif
         if (textMessage.indexOf("ack") == 0) {
             if (station != "WLNK-1") {  // don't show Winlink ACK
-                show_display("<<ACK Tx>>", 500);
+                show_display({"<<ACK Tx>>"}, 500);
             }
         } else if (station.indexOf("CA2RXU-15") == 0 && textMessage.indexOf("wrl") == 0) {
-            show_display("<WEATHER>","", "--- Sending Query ---",  1000);
+            show_display({"<WEATHER>","", "--- Sending Query ---"},  1000);
         } else {
             if (station == "WLNK-1") {
-                show_display("WINLINK Tx", "", newPacket, 1000);
+                show_display({"WINLINK Tx", "", newPacket}, 1000);
             } else {
-                show_display("MSG Tx >>", "", newPacket, 1000);
+                show_display({"MSG Tx >>", "", newPacket}, 1000);
             }
         }
         if (typeOfMessage == 1) {   //forced to send MSG with ack confirmation
@@ -330,7 +330,7 @@ namespace MSG_Utils {
 
                         String fifthLineWR    = temperature + "C  " + pressure + "hPa  " + humidity +"%";
                         String sixthLineWR    = "(wind " + windSpeed + "m/s " + windDegrees + "deg)";
-                        show_display("<WEATHER>", "From --> " + lastReceivedPacket.sender, place, summary, fifthLineWR, sixthLineWR);
+                        show_display({"<WEATHER>", "From --> " + lastReceivedPacket.sender, place, summary, fifthLineWR, sixthLineWR});
                         menuDisplay = 40;
                         menuTime = millis();
                     } else if (lastReceivedPacket.sender == "WLNK-1") {
@@ -356,7 +356,7 @@ namespace MSG_Utils {
 
                         else if (winlinkStatus == 2 && lastReceivedPacket.message.indexOf("Login [") == -1) {
                             Serial.println("We were already logged to WINLINK!!!!");
-                            show_display("_WINLINK_>", "", " LOGGED !!!!", 2000);
+                            show_display({"_WINLINK_>", "", " LOGGED !!!!"}, 2000);
                             winlinkStatus = 5;
                             menuDisplay = 5000;
                         } */else if (winlinkStatus == 3 && winlinkAckAnswer.toInt() == ackNumberSend) {
@@ -368,15 +368,24 @@ namespace MSG_Utils {
                             logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Winlink","---> Login Succesfull");
                             lastMsgRxTime = millis();
                             winlinkStatus = 5;
-                            show_display("_WINLINK_>", "", " LOGGED !!!!", 2000);
+                            show_display({"_WINLINK_>", "", " LOGGED !!!!"}, 2000);
                             menuDisplay = 5000;
                         } else if (winlinkStatus == 5 && lastReceivedPacket.message.indexOf("Log off successful") == 0 ) {
+<<<<<<< HEAD
                             lastMsgRxTime = millis();
                             show_display("_WINLINK_>", "", "    LOG OUT !!!", 2000);
                             winlinkStatus = 0;
                         } else if ((winlinkStatus == 5) && (lastReceivedPacket.message.indexOf("Log off successful") == -1) && (lastReceivedPacket.message.indexOf("Login valid") == -1) && (lastReceivedPacket.message.indexOf("Login [") == -1) && (lastReceivedPacket.message.indexOf("ack") == -1)) {
                             lastMsgRxTime = millis();
                             show_display("<WLNK Rx >", "", lastReceivedPacket.message , "", 3000);
+=======
+                            ackTime = millis();
+                            show_display({"_WINLINK_>", "", "    LOG OUT !!!"}, 2000);
+                            winlinkStatus = 0;
+                        } else if ((winlinkStatus == 5) && (lastReceivedPacket.message.indexOf("Log off successful") == -1) && (lastReceivedPacket.message.indexOf("Login valid") == -1) && (lastReceivedPacket.message.indexOf("Login [") == -1) && (lastReceivedPacket.message.indexOf("ack") == -1)) {
+                            ackTime = millis();
+                            show_display({"<WLNK Rx >", "", lastReceivedPacket.message , ""}, 3000);
+>>>>>>> 446e10e (deduplicated printing code)
                             saveNewMessage("WLNK", lastReceivedPacket.sender, lastReceivedPacket.message);
                         } else if (winlinkStatus == 0) {
                             if (!Config.simplifiedTrackerMode) {
@@ -386,8 +395,13 @@ namespace MSG_Utils {
                         }
                     } else {
                         if (!Config.simplifiedTrackerMode) {
+<<<<<<< HEAD
                             lastMsgRxTime = millis();
                             show_display("< MSG Rx >", "From --> " + lastReceivedPacket.sender, "", lastReceivedPacket.message , 3000);
+=======
+                            ackTime = millis();
+                            show_display({"< MSG Rx >", "From --> " + lastReceivedPacket.sender, "", lastReceivedPacket.message} , 3000);
+>>>>>>> 446e10e (deduplicated printing code)
                             saveNewMessage("APRS", lastReceivedPacket.sender, lastReceivedPacket.message);
                         }
                     }

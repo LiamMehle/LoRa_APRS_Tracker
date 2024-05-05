@@ -40,7 +40,7 @@ namespace BLUETOOTH_Utils {
 
         if (!SerialBT.begin(String("LoRa Tracker " + String(ourId)))) {
             logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "Bluetooth", "Starting Bluetooth failed!");
-            show_display("ERROR", "Starting Bluetooth failed!");
+            show_display({"ERROR", "Starting Bluetooth failed!"});
             while(true) {
                 delay(1000);
             }
@@ -122,7 +122,7 @@ namespace BLUETOOTH_Utils {
         }
 
         logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "BT TX", "%s", serialReceived.c_str());
-        show_display("BT Tx >>", "", serialReceived, 1000);
+        show_display({String("BT Tx >>"), String(""), String(serialReceived)}, 1000);
         LoRa_Utils::sendNewPacket(serialReceived);
         shouldSendToLoRa = false;
     }

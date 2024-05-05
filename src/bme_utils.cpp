@@ -31,7 +31,7 @@ namespace BME_Utils {
             bool status;
             status = bme.begin(0x76);
             if (!status) {
-                show_display("ERROR", "", "BME sensor active", "but no sensor found...");
+                show_display({"ERROR", "", "BME sensor active", "but no sensor found..."});
                 logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "BME", " BME/BMP sensor Active in config but not found! Check Wiring");
                 while (1);
             } else {
