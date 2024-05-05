@@ -319,7 +319,14 @@ void show_display(String header, String line1, String line2, String line3, Strin
     delay(wait);
 }
 
-void show_display(String header, String line1, String line2, String line3, String line4, String line5, int wait) {
+void show_display(
+    const String& header,
+    const String& line1,
+    const String& line2,
+    const String& line3,
+    const String& line4,
+    const String& line5,
+    int wait) {
     #ifdef HAS_TFT
     if (menuDisplay != lastMenuDisplay) {
         lastMenuDisplay = menuDisplay;
