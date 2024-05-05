@@ -492,46 +492,47 @@ namespace MENU_Utils {
 
 //////////
             case 0:       ///////////// MAIN MENU //////////////
-                String hdopState, firstRowMainMenu, secondRowMainMenu, thirdRowMainMenu, fourthRowMainMenu, fifthRowMainMenu, sixthRowMainMenu;
+                String hdopState;
+                String MainMenu[6];
 
-                firstRowMainMenu = currentBeacon->callsign;
+                MainMenu[0] = currentBeacon->callsign;
                 if (Config.display.showSymbol) {
-                    for (int j = firstRowMainMenu.length(); j < 9; j++) {
-                        firstRowMainMenu += " ";
+                    for (int j = MainMenu[0].length(); j < 9; j++) {
+                        MainMenu[0] += " ";
                     }
                     if (!symbolAvailable) {
-                        firstRowMainMenu += currentBeacon->symbol;
+                        MainMenu[0] += currentBeacon->symbol;
                     }
                 }
 
                 #ifdef TTGO_T_LORA32_V2_1_TNC
-                secondRowMainMenu = "";
-                thirdRowMainMenu = "    LoRa APRS TNC";
-                fourthRowMainMenu = "";
+                MainMenu[1] = "";
+                MainMenu[2] = "    LoRa APRS TNC";
+                MainMenu[3] = "";
                 #else
                 if (disableGPS) {
-                    secondRowMainMenu = "";
-                    thirdRowMainMenu = "    LoRa APRS TNC";
-                    fourthRowMainMenu = "";
+                    MainMenu[1] = "";
+                    MainMenu[2] = "    LoRa APRS TNC";
+                    MainMenu[3] = "";
                 } else {
                     const auto time_now = now();
-                    secondRowMainMenu = Utils::createDateString(time_now) + "   " + Utils::createTimeString(time_now);
+                    MainMenu[1] = Utils::createDateString(time_now) + "   " + Utils::createTimeString(time_now);
                     if (time_now % 10 < 5) {
-                        thirdRowMainMenu = String(gps.location.lat(), 4) + " " + String(gps.location.lng(), 4);
+                        MainMenu[2] = String(gps.location.lat(), 4) + " " + String(gps.location.lng(), 4);
                     } else {
-                        thirdRowMainMenu = String(Utils::getMaidenheadLocator(gps.location.lat(), gps.location.lng(), 8));
-                        thirdRowMainMenu += " LoRa[";
+                        MainMenu[2] = String(Utils::getMaidenheadLocator(gps.location.lat(), gps.location.lng(), 8));
+                        MainMenu[2] += " LoRa[";
                         if (loraIndex == 0) {
-                            thirdRowMainMenu += "Eu]";
+                            MainMenu[2] += "Eu]";
                         } else if (loraIndex == 1) {
-                            thirdRowMainMenu += "PL]";
+                            MainMenu[2] += "PL]";
                         } else if (loraIndex == 2) {
-                            thirdRowMainMenu += "UK]";
+                            MainMenu[2] += "UK]";
                         }
                     }
                     
-                    for(int i = thirdRowMainMenu.length(); i < 18; i++) {
-                        thirdRowMainMenu += " ";
+                    for(int i = MainMenu[2].length(); i < 18; i++) {
+                        MainMenu[2] += " ";
                     }
 
                     if (gps.hdop.hdop() > 5) {
@@ -543,9 +544,9 @@ namespace MENU_Utils {
                     }
 
                     if (gps.satellites.value() > 9) {
-                        thirdRowMainMenu += String(gps.satellites.value()) + hdopState;
+                        MainMenu[2] += String(gps.satellites.value()) + hdopState;
                     } else {
-                        thirdRowMainMenu += " " + String(gps.satellites.value()) + hdopState;
+                        MainMenu[2] += " " + String(gps.satellites.value()) + hdopState;
                     }
 
                     String fourthRowAlt = String(gps.altitude.meters(),0);
@@ -569,37 +570,37 @@ namespace MENU_Utils {
                     }
                     if (Config.bme.active) {
                         if (time_now % 10 < 5) {
-                            fourthRowMainMenu = "A=" + fourthRowAlt + "m  " + fourthRowSpeed + "km/h  " + fourthRowCourse;
+                            MainMenu[3] = "A=" + fourthRowAlt + "m  " + fourthRowSpeed + "km/h  " + fourthRowCourse;
                         } else {
-                            fourthRowMainMenu = BME_Utils::readDataSensor("OLED");
+                            MainMenu[3] = BME_Utils::readDataSensor("OLED");
                         }
                     } else {
-                        fourthRowMainMenu = "A=" + fourthRowAlt + "m  " + fourthRowSpeed + "km/h  " + fourthRowCourse;
+                        MainMenu[3] = "A=" + fourthRowAlt + "m  " + fourthRowSpeed + "km/h  " + fourthRowCourse;
                     }
                     if (MSG_Utils::getNumWLNKMails() > 0) {
-                        fourthRowMainMenu = "** WLNK MAIL: " + String(MSG_Utils::getNumWLNKMails()) + " **";
+                        MainMenu[3] = "** WLNK MAIL: " + String(MSG_Utils::getNumWLNKMails()) + " **";
                     }
                     if (MSG_Utils::getNumAPRSMessages() > 0) {
-                        fourthRowMainMenu = "*** MESSAGES: " + String(MSG_Utils::getNumAPRSMessages()) + " ***";
+                        MainMenu[3] = "*** MESSAGES: " + String(MSG_Utils::getNumAPRSMessages()) + " ***";
                     }
                 }
                 #endif
 
-                fifthRowMainMenu  = "LAST Rx = " + MSG_Utils::getLastHeardTracker();
+                MainMenu[4]  = "LAST Rx = " + MSG_Utils::getLastHeardTracker();
 
                 if (POWER_Utils::getBatteryInfoIsConnected()) {
                     String batteryVoltage = POWER_Utils::getBatteryInfoVoltage();
                     String batteryCharge = POWER_Utils::getBatteryInfoCurrent();
                     #if defined(TTGO_T_Beam_V0_7) || defined(TTGO_T_LORA32_V2_1_GPS) || defined(TTGO_T_LORA32_V2_1_TNC) || defined(HELTEC_V3_GPS) || defined(HELTEC_WIRELESS_TRACKER) 
-					    sixthRowMainMenu = "Bat: " + batteryVoltage + "V";
+					    MainMenu[5] = "Bat: " + batteryVoltage + "V";
                     #endif
                     #if defined(TTGO_T_Beam_V1_0) || defined(TTGO_T_Beam_V1_0_SX1268)
                     if (batteryCharge.toInt() == 0) {
-                        sixthRowMainMenu = "Battery Charged " + batteryVoltage + "V";
+                        MainMenu[5] = "Battery Charged " + batteryVoltage + "V";
                     } else if (batteryCharge.toInt() > 0) {
-                        sixthRowMainMenu = "Bat: " + batteryVoltage + "V (charging)";
+                        MainMenu[5] = "Bat: " + batteryVoltage + "V (charging)";
                     } else {
-                        sixthRowMainMenu = "Battery " + batteryVoltage + "V " + batteryCharge + "mA";
+                        MainMenu[5] = "Battery " + batteryVoltage + "V " + batteryCharge + "mA";
                     }
                     #endif
                     #if defined(TTGO_T_Beam_V1_2) || defined(TTGO_T_Beam_V1_2_SX1262) || defined(TTGO_T_Beam_S3_SUPREME_V3)
@@ -615,22 +616,22 @@ namespace MENU_Utils {
                         }
                         batteryVoltage = batteryVoltage.toFloat()/1000;
                         if (POWER_Utils::isCharging() && batteryCharge!="100") {
-                            sixthRowMainMenu = "Bat: " + String(batteryVoltage) + "V (charging)";
+                            MainMenu[5] = "Bat: " + String(batteryVoltage) + "V (charging)";
                         } else if (!POWER_Utils::isCharging() && batteryCharge=="100") {
-                            sixthRowMainMenu = "Battery Charged " + String(batteryVoltage) + "V";
+                            MainMenu[5] = "Battery Charged " + String(batteryVoltage) + "V";
                         } else {
-                            sixthRowMainMenu = "Battery  " + String(batteryVoltage) + "V   " + batteryCharge + "%";
+                            MainMenu[5] = "Battery  " + String(batteryVoltage) + "V   " + batteryCharge + "%";
                         }
                     #endif
                 } else {
-                    sixthRowMainMenu = "No Battery Connected" ;
+                    MainMenu[5] = "No Battery Connected" ;
                 }
-                show_display(firstRowMainMenu,
-                            secondRowMainMenu,
-                            thirdRowMainMenu,
-                            fourthRowMainMenu,
-                            fifthRowMainMenu,
-                            sixthRowMainMenu);
+                show_display(MainMenu[0],
+                            MainMenu[1],
+                            MainMenu[2],
+                            MainMenu[3],
+                            MainMenu[4],
+                            MainMenu[5]);
                 break;
         }
     }
