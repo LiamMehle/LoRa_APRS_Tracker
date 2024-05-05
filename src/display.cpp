@@ -392,20 +392,22 @@ void show_display(
     #else
     display.setTextColor(SH110X_WHITE);
     #endif
-    display.setTextSize(2);
-    display.setCursor(0, 0);
-    display.println(header);
-    display.setTextSize(1);
-    display.setCursor(0, 16);
-    display.println(line1);
-    display.setCursor(0, 26);
-    display.println(line2);
-    display.setCursor(0, 36);
-    display.println(line3);
-    display.setCursor(0, 46);
-    display.println(line4);
-    display.setCursor(0, 56);
-    display.println(line5);
+    uint8_t constexpr cursor_vertical_positions[6] =
+                                      { 0, 16, 26, 36, 46, 56 };
+    //uint8_t constexpr text_sizes[6] = { 2,  1,  1,  1,  1,  1 };
+    String const* const lines[6] = {  // array of references is not allowed by C++11
+        &header,
+        &line1,
+        &line2,
+        &line3,
+        &line4,
+        &line5
+    };
+    for (int i=0; i<6; i++) {
+        display.setTextSize(i == 0 ? 2 : 1);
+        display.setCursor(0, cursor_vertical_positions[i]);
+        display.println(*lines[i]);
+    }
     #ifdef ssd1306
     display.ssd1306_command(SSD1306_SETCONTRAST);
     display.ssd1306_command(screenBrightness);
