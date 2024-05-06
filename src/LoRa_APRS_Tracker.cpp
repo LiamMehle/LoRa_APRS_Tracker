@@ -256,7 +256,7 @@ void loop() {
 
     if (gps_loc_update) {
         //Utils::checkStatus();
-        STATION_Utils::checkTelemetryTx();
+        STATION_Utils::checkTelemetryTx();  // todo: *sends* (not checks) telemetry, needs refactor
     }
     lastTx = millis() - lastTxTime;
     if (!sendUpdate && gps_loc_update && smartBeaconValue) {
@@ -266,7 +266,7 @@ void loop() {
         }
         STATION_Utils::checkStandingUpdateTime();
     }
-    STATION_Utils::checkSmartBeaconState();
+    STATION_Utils::checkSmartBeaconState();  // handles flag in case of **non**smart beacon
     if (sendUpdate && gps_loc_update) STATION_Utils::sendBeacon("GPS");
     if (gps_time_update) STATION_Utils::checkSmartBeaconInterval(currentSpeed);
   

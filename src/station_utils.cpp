@@ -378,12 +378,9 @@ namespace STATION_Utils {
     }
 
     void checkSmartBeaconState() {
-        if (!smartBeaconValue) {
-            uint32_t lastTxSmartBeacon = millis() - lastTxTime;
-            if (lastTxSmartBeacon >= Config.nonSmartBeaconRate * 60 * 1000) {
-                sendUpdate = true;
-            }
-        }
+        uint32_t lastTxSmartBeacon = millis() - lastTxTime;
+        if (!smartBeaconValue && lastTxSmartBeacon >= Config.nonSmartBeaconRate * 60 * 1000)
+            sendUpdate = true;
     }
 
     void sendBeacon(String type) {
