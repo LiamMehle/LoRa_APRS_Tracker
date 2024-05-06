@@ -26,7 +26,8 @@ bool transmissionFlag = true;
 bool enableInterrupt = true;
 #endif
 #if defined(TTGO_T_Beam_V1_2_SX1262) || defined(TTGO_T_Beam_S3_SUPREME_V3) || defined(HELTEC_V3_GPS) || defined(HELTEC_WIRELESS_TRACKER) || defined(TTGO_T_DECK_GPS)
-SX1262 radio = new Module(RADIO_CS_PIN, RADIO_DIO1_PIN, RADIO_RST_PIN, RADIO_BUSY_PIN);
+auto radio_module = Module(RADIO_CS_PIN, RADIO_DIO1_PIN, RADIO_RST_PIN, RADIO_BUSY_PIN);
+SX1262 radio = SX1262(&radio_module);
 bool transmissionFlag = true;
 bool enableInterrupt = true;
 #endif
