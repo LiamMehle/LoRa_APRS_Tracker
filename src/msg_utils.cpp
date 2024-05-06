@@ -371,21 +371,12 @@ namespace MSG_Utils {
                             show_display({"_WINLINK_>", "", " LOGGED !!!!"}, 2000);
                             menuDisplay = 5000;
                         } else if (winlinkStatus == 5 && lastReceivedPacket.message.indexOf("Log off successful") == 0 ) {
-<<<<<<< HEAD
                             lastMsgRxTime = millis();
-                            show_display("_WINLINK_>", "", "    LOG OUT !!!", 2000);
-                            winlinkStatus = 0;
-                        } else if ((winlinkStatus == 5) && (lastReceivedPacket.message.indexOf("Log off successful") == -1) && (lastReceivedPacket.message.indexOf("Login valid") == -1) && (lastReceivedPacket.message.indexOf("Login [") == -1) && (lastReceivedPacket.message.indexOf("ack") == -1)) {
-                            lastMsgRxTime = millis();
-                            show_display("<WLNK Rx >", "", lastReceivedPacket.message , "", 3000);
-=======
-                            ackTime = millis();
                             show_display({"_WINLINK_>", "", "    LOG OUT !!!"}, 2000);
                             winlinkStatus = 0;
                         } else if ((winlinkStatus == 5) && (lastReceivedPacket.message.indexOf("Log off successful") == -1) && (lastReceivedPacket.message.indexOf("Login valid") == -1) && (lastReceivedPacket.message.indexOf("Login [") == -1) && (lastReceivedPacket.message.indexOf("ack") == -1)) {
-                            ackTime = millis();
+                            lastMsgRxTime = millis();
                             show_display({"<WLNK Rx >", "", lastReceivedPacket.message , ""}, 3000);
->>>>>>> 446e10e (deduplicated printing code)
                             saveNewMessage("WLNK", lastReceivedPacket.sender, lastReceivedPacket.message);
                         } else if (winlinkStatus == 0) {
                             if (!Config.simplifiedTrackerMode) {
@@ -395,13 +386,8 @@ namespace MSG_Utils {
                         }
                     } else {
                         if (!Config.simplifiedTrackerMode) {
-<<<<<<< HEAD
                             lastMsgRxTime = millis();
-                            show_display("< MSG Rx >", "From --> " + lastReceivedPacket.sender, "", lastReceivedPacket.message , 3000);
-=======
-                            ackTime = millis();
                             show_display({"< MSG Rx >", "From --> " + lastReceivedPacket.sender, "", lastReceivedPacket.message} , 3000);
->>>>>>> 446e10e (deduplicated printing code)
                             saveNewMessage("APRS", lastReceivedPacket.sender, lastReceivedPacket.message);
                         }
                     }
