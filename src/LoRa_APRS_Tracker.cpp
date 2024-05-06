@@ -255,7 +255,7 @@ void loop() {
     int currentSpeed = (int) gps.speed.kmph();
 
     if (gps_loc_update) {
-        Utils::checkStatus();
+        //Utils::checkStatus();
         STATION_Utils::checkTelemetryTx();
     }
     lastTx = millis() - lastTxTime;
