@@ -84,9 +84,8 @@ namespace BLE_Utils {
     }
 
     void sendToLoRa() {
-        if (!sendBleToLoRa) {
+        if (!sendBleToLoRa)
             return;
-        }
         logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "BLE Tx", "%s", BLEToLoRaPacket.c_str());
         show_display({"BLE Tx >>", "", BLEToLoRaPacket}, 1000);
         LoRa_Utils::sendNewPacket(BLEToLoRaPacket);
