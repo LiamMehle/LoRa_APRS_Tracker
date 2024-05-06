@@ -261,9 +261,7 @@ void loop() {
     lastTx = millis() - lastTxTime;
     if (!sendUpdate && gps_loc_update && smartBeaconValue) {
         GPS_Utils::calculateDistanceTraveled();
-        if (!sendUpdate) {
-            GPS_Utils::calculateHeadingDelta(currentSpeed);
-        }
+        GPS_Utils::calculateHeadingDelta(currentSpeed);
         STATION_Utils::checkStandingUpdateTime();
     }
     STATION_Utils::checkSmartBeaconState();  // handles flag in case of **non**smart beacon
