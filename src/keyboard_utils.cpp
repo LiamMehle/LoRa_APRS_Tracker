@@ -150,10 +150,10 @@ namespace KEYBOARD_Utils {
     }
 
     void downArrow() {
-        if (menuDisplay == 0) {
-            if (displayState) {
-                sendUpdate = true;
-            } else {
+        if (menuDisplay == 0) {  // if on main/default screen
+            if (displayState) {  // if display is on
+                sendUpdate = !sendUpdate;
+            } else {  // turn display on
                 display_toggle(true);
                 displayTime = millis();   
                 displayState = true;  

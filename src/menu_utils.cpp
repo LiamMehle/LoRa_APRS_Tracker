@@ -44,6 +44,8 @@ extern String               winlinkAlias;
 extern String               winlinkAliasComplete;
 extern bool                 winlinkCommentState;
 
+extern bool sendUpdate;
+
 String freqChangeWarning;
 
 namespace MENU_Utils {
@@ -626,6 +628,9 @@ namespace MENU_Utils {
                 } else {
                     MainMenu[5] = "No Battery Connected" ;
                 }
+                char const* const button_status_string = sendUpdate ? "y" : "X";                
+                //memcpy((void*)&MainMenu[3][18], button_status_string, 1);
+                MainMenu[3][8] = *button_status_string;
                 show_display({MainMenu[0],
                             MainMenu[1],
                             MainMenu[2],
