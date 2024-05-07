@@ -199,7 +199,7 @@ void setup() {
         userButton.attachLongPressStart(BUTTON_Utils::longPress);
         userButton.attachDoubleClick(BUTTON_Utils::doublePress);
         userButton.attachMultiClick(BUTTON_Utils::multiPress);
-        userButton.setClickTicks(50);
+        userButton.setClickTicks(200);
         userButton.setPressTicks(500);
         #endif
         KEYBOARD_Utils::setup();
