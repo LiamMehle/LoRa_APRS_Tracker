@@ -165,10 +165,10 @@ namespace KEYBOARD_Utils {
         uint64_t const abs_x_as_int = x_as_int & ~(1ull<<63);
         double   const absolute_x = *(double*)&abs_x_as_int;
         #pragma GCC diagnostic pop
-        uint32_t const scaled_absolute_x = static_cast<uint32_t>(absolute_x * 60000.0);
-        uint8_t  const degrees    = static_cast<uint8_t>(scaled_absolute_x/60000);
-        uint8_t  const minutes    = static_cast<uint8_t>(scaled_absolute_x/1000);
-        uint8_t  const fractional_minutes = static_cast<uint8_t>(scaled_absolute_x);
+        uint32_t const scaled_absolute_x = static_cast<uint32_t>(absolute_x * 6000.0);
+        uint8_t  const degrees    = static_cast<uint8_t>(scaled_absolute_x/6000);
+        uint8_t  const minutes    = static_cast<uint8_t>(scaled_absolute_x/100%60);
+        uint8_t  const fractional_minutes = static_cast<uint8_t>(scaled_absolute_x%100);
         return CoordSpec{
             degrees,
             minutes,
