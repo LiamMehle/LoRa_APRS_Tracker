@@ -187,6 +187,7 @@ namespace KEYBOARD_Utils {
                     lat.degrees, lat.minutes, lat.fractional_minutes, lat.cardinal_direction,
                     lng.degrees, lng.minutes, lng.fractional_minutes, lng.cardinal_direction,
                     "");
+                show_display({"<TX>", message_string});
                 LoRa_Utils::sendNewPacket(std::move(message_string));
                 // sendUpdate = !sendUpdate;
             } else {  // turn display on
@@ -360,6 +361,7 @@ namespace KEYBOARD_Utils {
                 lat.degrees, lat.minutes, lat.fractional_minutes, lat.cardinal_direction,
                 lng.degrees, lng.minutes, lng.fractional_minutes, lng.cardinal_direction,
                 "(KILLED)");
+            show_display({"<TX>", message_string});
             LoRa_Utils::sendNewPacket(std::move(message_string));
             return;
             if(myBeaconsIndex >= (myBeaconsSize-1)) {

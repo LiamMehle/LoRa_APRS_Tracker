@@ -533,7 +533,7 @@ namespace MENU_Utils {
                         }
                     }
                     
-                    for(int i = MainMenu[2].length(); i < 18; i++) {
+                    for(int i = MainMenu[2].length(); i < 17; i++) {
                         MainMenu[2] += " ";
                     }
 
@@ -546,9 +546,9 @@ namespace MENU_Utils {
                     }
 
                     if (gps.satellites.value() > 9) {
-                        MainMenu[2] += String(gps.satellites.value()) + hdopState;
+                        MainMenu[2] += String(gps.satellites.value()) + ' ' + hdopState;
                     } else {
-                        MainMenu[2] += " " + String(gps.satellites.value()) + hdopState;
+                        MainMenu[2] += " " + String(gps.satellites.value()) ' ' + hdopState;
                     }
 
                     String fourthRowAlt = String(gps.altitude.meters(),0);
@@ -628,9 +628,6 @@ namespace MENU_Utils {
                 } else {
                     MainMenu[5] = "No Battery Connected" ;
                 }
-                char const* const button_status_string = sendUpdate ? "y" : "X";                
-                //memcpy((void*)&MainMenu[3][18], button_status_string, 1);
-                MainMenu[3][8] = *button_status_string;
                 show_display({MainMenu[0],
                             MainMenu[1],
                             MainMenu[2],
