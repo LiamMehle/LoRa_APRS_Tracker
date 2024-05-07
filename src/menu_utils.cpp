@@ -537,18 +537,18 @@ namespace MENU_Utils {
                         MainMenu[2] += " ";
                     }
 
-                    if (gps.hdop.hdop() > 5) {
-                        hdopState = "X";
-                    } else if (gps.hdop.hdop() > 2 && gps.hdop.hdop() < 5) {
-                        hdopState = "-";
-                    } else if (gps.hdop.hdop() <= 2) {
-                        hdopState = "+";
-                    }
+                    // if (gps.hdop.hdop() > 5) {
+                    //     hdopState = "X";
+                    // } else if (gps.hdop.hdop() > 2 && gps.hdop.hdop() < 5) {
+                    //     hdopState = "-";
+                    // } else if (gps.hdop.hdop() <= 2) {
+                    //     hdopState = "+";
+                    // }
 
                     if (gps.satellites.value() > 9) {
-                        MainMenu[2] += String(gps.satellites.value()) + ' ' + hdopState;
+                        MainMenu[2] += String(gps.satellites.value()) + ' ' + gps.hdop.hdop();
                     } else {
-                        MainMenu[2] += " " + String(gps.satellites.value()) + ' ' + hdopState;
+                        MainMenu[2] += " " + String(gps.satellites.value()) + ' ' + gps.hdop.hdop();
                     }
 
                     String fourthRowAlt = String(gps.altitude.meters(),0);
