@@ -185,7 +185,7 @@ namespace KEYBOARD_Utils {
                     "S56IM>APRS,WIDE1-1:;S56IM-9 *101800z%02hhd%02hhd.%02hhd%c/%02hhd%02hhd.%02hhd%c-%s",
                     lat.degrees, lat.minutes, lat.fractional_minutes, lat.cardinal_direction,
                     lng.degrees, lng.minutes, lng.fractional_minutes, lng.cardinal_direction,
-                    "test");
+                    "test-object");
                 LoRa_Utils::sendNewPacket(std::move(message_string));
                 // sendUpdate = !sendUpdate;
             } else {  // turn display on
@@ -193,7 +193,7 @@ namespace KEYBOARD_Utils {
                 displayTime = millis();   
                 displayState = true;  
             }
-        }    
+        }
         if (menuDisplay >= 1 && menuDisplay <= 6) {
             menuDisplay++;
             if (menuDisplay > 6) {
