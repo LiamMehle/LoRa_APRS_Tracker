@@ -149,10 +149,45 @@ namespace KEYBOARD_Utils {
         }
     }
 
+    struct CoordSpec {
+        uint8_t degrees;
+        uint8_t minutes;
+        uint8_t fractional_minutes;
+        char    cardinal_direction;
+    };
+    auto parse_coord(double const x,
+                    char const positive_char,
+                    char const negative_char) -> struct CoordSpec {
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wstrict-aliasing"
+        uint64_t const x_as_int = *(uint64_t*)(&x);
+        bool     const is_negative = (x_as_int >> 63) != 0;  // get last bit
+        uint64_t const abs_x_as_int = x_as_int & ~(1ull<<63);
+        double   const absolute_x = *(double*)&abs_x_as_int;
+        #pragma GCC diagnostic pop
+        uint32_t const scaled_absolute_x = static_cast<uint32_t>(absolute_x * 60000.0);
+        uint8_t  const degrees    = static_cast<uint8_t>(scaled_absolute_x/60000);
+        uint8_t  const minutes    = static_cast<uint8_t>(scaled_absolute_x/1000);
+        uint8_t  const fractional_minutes = static_cast<uint8_t>(scaled_absolute_x);
+        return CoordSpec{
+            degrees,
+            minutes,
+            fractional_minutes,
+            is_negative ? negative_char : positive_char};
+    }
     void downArrow() {
         if (menuDisplay == 0) {  // if on main/default screen
             if (displayState) {  // if display is on
-                sendUpdate = !sendUpdate;
+                auto const lat = parse_coord(gps.location.lat(), 'N', 'S');
+                auto const lng = parse_coord(gps.location.lng(), 'E', 'W');
+                char message_string[60];
+                snprintf(message_string, sizeof(message_string),
+                    "S56IM>APRS,WIDE1-1:;S56IM-9 *101800z%02hhd%02hhd.%02hhd%c/%02hhd%02hhd.%02hhd%c-%s",
+                    lat.degrees, lat.minutes, lat.fractional_minutes, lat.cardinal_direction,
+                    lng.degrees, lng.minutes, lng.fractional_minutes, lng.cardinal_direction,
+                    "test");
+                LoRa_Utils::sendNewPacket(std::move(message_string));
+                // sendUpdate = !sendUpdate;
             } else {  // turn display on
                 display_toggle(true);
                 displayTime = millis();   
