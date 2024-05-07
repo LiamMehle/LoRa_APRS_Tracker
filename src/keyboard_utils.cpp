@@ -180,12 +180,13 @@ namespace KEYBOARD_Utils {
             if (displayState) {  // if display is on
                 auto const lat = parse_coord(gps.location.lat(), 'N', 'S');
                 auto const lng = parse_coord(gps.location.lng(), 'E', 'W');
-                char message_string[60];
+                char message_string[70] = {0};
                 snprintf(message_string, sizeof(message_string),
-                    "S56IM>APRS,WIDE1-1:;S56IM-9 *101800z%02hhd%02hhd.%02hhd%c/%02hhd%02hhd.%02hhd%c-%s",
+                    "S56IM>APRS,WIDE1-1:;%9s*101800z%02hhd%02hhd.%02hhd%c/%02hhd%02hhd.%02hhd%c[%7s",
+                    "test-obj",
                     lat.degrees, lat.minutes, lat.fractional_minutes, lat.cardinal_direction,
                     lng.degrees, lng.minutes, lng.fractional_minutes, lng.cardinal_direction,
-                    "test-object");
+                    "");
                 LoRa_Utils::sendNewPacket(std::move(message_string));
                 // sendUpdate = !sendUpdate;
             } else {  // turn display on
@@ -350,6 +351,17 @@ namespace KEYBOARD_Utils {
 
     void rightArrow() {
         if (menuDisplay == 0 || menuDisplay == 200) {
+            auto const lat = parse_coord(gps.location.lat(), 'N', 'S');
+            auto const lng = parse_coord(gps.location.lng(), 'E', 'W');
+            char message_string[70] = {0};
+            snprintf(message_string, sizeof(message_string),
+                "S56IM>APRS,WIDE1-1:;%9s*101800z%02hhd%02hhd.%02hhd%c/%02hhd%02hhd.%02hhd%c[%7s",
+                "test-obj",
+                lat.degrees, lat.minutes, lat.fractional_minutes, lat.cardinal_direction,
+                lng.degrees, lng.minutes, lng.fractional_minutes, lng.cardinal_direction,
+                "(KILLED)");
+            LoRa_Utils::sendNewPacket(std::move(message_string));
+            return;
             if(myBeaconsIndex >= (myBeaconsSize-1)) {
                 myBeaconsIndex = 0;
             } else {
