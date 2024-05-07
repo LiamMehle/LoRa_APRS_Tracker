@@ -548,7 +548,7 @@ namespace MENU_Utils {
                     if (gps.satellites.value() > 9) {
                         MainMenu[2] += String(gps.satellites.value()) + ' ' + hdopState;
                     } else {
-                        MainMenu[2] += " " + String(gps.satellites.value()) ' ' + hdopState;
+                        MainMenu[2] += " " + String(gps.satellites.value()) + ' ' + hdopState;
                     }
 
                     String fourthRowAlt = String(gps.altitude.meters(),0);
