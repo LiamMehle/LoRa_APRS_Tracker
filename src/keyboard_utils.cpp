@@ -70,6 +70,53 @@ int rightCounter            = 0;
 int trackBallSensitivity    = 5;
 
 
+static
+void publish_object(bool destroy = false) {
+    struct CoordSpec {
+        uint8_t degrees;
+        uint8_t minutes;
+        uint8_t fractional_minutes;
+        char    cardinal_direction;
+    };
+    auto parse_coord = [](double const x,
+                    char const positive_char,
+                    char const negative_char) -> struct CoordSpec {
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wstrict-aliasing"
+        uint64_t const x_as_int = *(uint64_t*)(&x);
+        bool     const is_negative = (x_as_int >> 63) != 0;  // get last bit
+        uint64_t const abs_x_as_int = x_as_int & ~(1ull<<63);
+        double   const absolute_x = *(double*)&abs_x_as_int;
+        #pragma GCC diagnostic pop
+        uint64_t constexpr scaling_factor = 6000;
+        uint32_t const scaled_absolute_x = static_cast<uint32_t>(absolute_x * scaling_factor);
+        uint8_t  const degrees    = static_cast<uint8_t>(scaled_absolute_x/scaling_factor);
+        uint8_t  const minutes    = static_cast<uint8_t>(scaled_absolute_x/(scaling_factor/60)%60);
+        uint8_t  const fractional_minutes = static_cast<uint8_t>(scaled_absolute_x/(scaling_factor/6000)%100);
+        return CoordSpec{
+            degrees,
+            minutes,
+            fractional_minutes,
+            is_negative ? negative_char : positive_char};
+    };
+    // auto const lat = parse_coord(gps.location.lat(), 'N', 'S');
+    // auto const lng = parse_coord(gps.location.lng(), 'E', 'W');
+    char message_string[70] = {0};
+    snprintf(message_string, sizeof(message_string),
+        //"S56IM-9>APDR16,WIDE1-1:!%02hhd%02hhd.%02hhd%c/%03hhd%02hhd.%02hhd%c[%7s",
+        // 14 + 9 + 8 + 6 + 7 + 2 + 1 + 7
+        // 54
+        "S56IM-9>APRS:;%s%c200354z4532.00N/01339.74E[%s",
+        // "S56IM-9>APRS:!%s*101800z%02hhd%02hhd.%02hhd%c/%03hhd%02hhd.%02hhd%c[%s",
+        "TESTOBJT ", // must be no more than 9 characters
+        destroy ? '_' : '*',
+        // lat.degrees, lat.minutes, lat.fractional_minutes, lat.cardinal_direction,
+        // lng.degrees, lng.minutes, lng.fractional_minutes, lng.cardinal_direction,
+        "");
+        show_display({"<[TX]>", message_string});
+    LoRa_Utils::sendNewPacket(std::move(message_string));
+}
+
 namespace KEYBOARD_Utils {
 
     void upArrow() {
@@ -149,45 +196,10 @@ namespace KEYBOARD_Utils {
         }
     }
 
-    struct CoordSpec {
-        uint8_t degrees;
-        uint8_t minutes;
-        uint8_t fractional_minutes;
-        char    cardinal_direction;
-    };
-    auto parse_coord(double const x,
-                    char const positive_char,
-                    char const negative_char) -> struct CoordSpec {
-        #pragma GCC diagnostic push
-        #pragma GCC diagnostic ignored "-Wstrict-aliasing"
-        uint64_t const x_as_int = *(uint64_t*)(&x);
-        bool     const is_negative = (x_as_int >> 63) != 0;  // get last bit
-        uint64_t const abs_x_as_int = x_as_int & ~(1ull<<63);
-        double   const absolute_x = *(double*)&abs_x_as_int;
-        #pragma GCC diagnostic pop
-        uint32_t const scaled_absolute_x = static_cast<uint32_t>(absolute_x * 6000.0);
-        uint8_t  const degrees    = static_cast<uint8_t>(scaled_absolute_x/6000);
-        uint8_t  const minutes    = static_cast<uint8_t>(scaled_absolute_x/100%60);
-        uint8_t  const fractional_minutes = static_cast<uint8_t>(scaled_absolute_x%100);
-        return CoordSpec{
-            degrees,
-            minutes,
-            fractional_minutes,
-            is_negative ? negative_char : positive_char};
-    }
     void downArrow() {
         if (menuDisplay == 0) {  // if on main/default screen
             if (displayState) {  // if display is on
-                auto const lat = parse_coord(gps.location.lat(), 'N', 'S');
-                auto const lng = parse_coord(gps.location.lng(), 'E', 'W');
-                char message_string[70] = {0};
-                snprintf(message_string, sizeof(message_string),
-                    "S56IM>APRS,WIDE1-1:;%9s*101800z%02hhd%02hhd.%02hhd%c/%02hhd%02hhd.%02hhd%c[%7s",
-                    "test-obj",
-                    lat.degrees, lat.minutes, lat.fractional_minutes, lat.cardinal_direction,
-                    lng.degrees, lng.minutes, lng.fractional_minutes, lng.cardinal_direction,
-                    "");
-                LoRa_Utils::sendNewPacket(std::move(message_string));
+                publish_object();
                 // sendUpdate = !sendUpdate;
             } else {  // turn display on
                 display_toggle(true);
@@ -351,16 +363,7 @@ namespace KEYBOARD_Utils {
 
     void rightArrow() {
         if (menuDisplay == 0 || menuDisplay == 200) {
-            auto const lat = parse_coord(gps.location.lat(), 'N', 'S');
-            auto const lng = parse_coord(gps.location.lng(), 'E', 'W');
-            char message_string[70] = {0};
-            snprintf(message_string, sizeof(message_string),
-                "S56IM>APRS,WIDE1-1:;%9s*101800z%02hhd%02hhd.%02hhd%c/%02hhd%02hhd.%02hhd%c[%7s",
-                "test-obj",
-                lat.degrees, lat.minutes, lat.fractional_minutes, lat.cardinal_direction,
-                lng.degrees, lng.minutes, lng.fractional_minutes, lng.cardinal_direction,
-                "(KILLED)");
-            LoRa_Utils::sendNewPacket(std::move(message_string));
+            publish_object(true);
             return;
             if(myBeaconsIndex >= (myBeaconsSize-1)) {
                 myBeaconsIndex = 0;
