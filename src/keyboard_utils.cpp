@@ -101,15 +101,18 @@ void publish_object(bool destroy = false) {
     };
     // auto const lat = parse_coord(gps.location.lat(), 'N', 'S');
     // auto const lng = parse_coord(gps.location.lng(), 'E', 'W');
+    
+    auto const object_format = "S56IM-9>APRS:;%s%c200354z4532.00N\\01339.74E9%s";
+    auto const item_format   = "S56IM-9>APRS:)%s%c4532.00N\\01339.74E9%s";
     char message_string[70] = {0};
     snprintf(message_string, sizeof(message_string),
         //"S56IM-9>APDR16,WIDE1-1:!%02hhd%02hhd.%02hhd%c/%03hhd%02hhd.%02hhd%c[%7s",
         // 14 + 9 + 8 + 6 + 7 + 2 + 1 + 7
         // 54
-        "S56IM-9>APRS:;%s%c200354z4532.00N/01339.74E[%s",
+        item_format,
         // "S56IM-9>APRS:!%s*101800z%02hhd%02hhd.%02hhd%c/%03hhd%02hhd.%02hhd%c[%s",
         "TESTOBJT ", // must be no more than 9 characters
-        destroy ? '_' : '*',
+        destroy ? '_' : '!',
         // lat.degrees, lat.minutes, lat.fractional_minutes, lat.cardinal_direction,
         // lng.degrees, lng.minutes, lng.fractional_minutes, lng.cardinal_direction,
         "");
