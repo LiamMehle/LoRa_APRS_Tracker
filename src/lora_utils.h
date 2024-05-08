@@ -33,13 +33,13 @@ namespace APRS {
     // suplementary information to add at the end of a bare aprs packet
     struct Object {
         String name;
-        String time;
         String comment;
         double latitude;
         double longtitude;
+        bool is_live;
         uint16_t course;
         uint16_t speed;
-        bool is_live;
+        uint8_t hour, minute, second;
         char overlay;
         char symbol;
     };

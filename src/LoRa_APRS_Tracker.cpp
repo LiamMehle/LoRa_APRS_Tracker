@@ -45,7 +45,8 @@ TinyGPSPlus                         gps;
 BluetoothSerial                     SerialBT;
 #endif
 #ifdef BUTTON_PIN
-OneButton userButton                = OneButton(BUTTON_PIN, true, true);
+OneButton userButton                = OneButton(BUTTON_PIN,  true, true);
+OneButton objectButton              = OneButton(BUTTON2_PIN, true, true);
 #endif
 
 String      versionDate             = "2024.05.06";
@@ -195,6 +196,12 @@ void setup() {
 
     if (!Config.simplifiedTrackerMode) {
         #ifdef BUTTON_PIN
+        // gpio_output_set(0, 0, ~(1<<4), 1<<4);
+        // if (gpio_pullup_en(GPIO_NUM_4) != ESP_OK) while (true);
+        objectButton.attachClick(Object::place);
+        objectButton.attachDoubleClick(Object::remove_last);
+        objectButton.attachLongPressStart(Object::retransmit_all);
+        objectButton.attachMultiClick(Object::remove_all);
         userButton.attachClick(BUTTON_Utils::singlePress);
         userButton.attachLongPressStart(BUTTON_Utils::longPress);
         userButton.attachDoubleClick(BUTTON_Utils::doublePress);
@@ -225,6 +232,7 @@ void loop() {
 
     if (!Config.simplifiedTrackerMode) {
         #ifdef BUTTON_PIN
+        objectButton.tick();
         userButton.tick();
         #endif
     }

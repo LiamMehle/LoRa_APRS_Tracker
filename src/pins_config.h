@@ -13,6 +13,7 @@
 #define GPS_RX              12
 #define GPS_TX              34
 #define BUTTON_PIN          38 // The middle button GPIO on the T-Beam
+#define BUTTON2_PIN         GPIO_NUM_13
 #endif
 
 

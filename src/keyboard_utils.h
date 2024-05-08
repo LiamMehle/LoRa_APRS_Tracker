@@ -15,5 +15,11 @@ namespace KEYBOARD_Utils {
     void setup();
   
 }
+namespace Object {
+    void place();
+    void remove_last();
+    void remove_all();
+    void retransmit_all();
+}
 
 #endif

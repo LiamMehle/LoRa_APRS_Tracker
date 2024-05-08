@@ -282,10 +282,11 @@ namespace APRS {
         };
 
         auto const parsed_lat   = parse_coord(info.latitude, 'N', 'S');
-        auto const parsed_lng = parse_coord(info.latitude, 'E', 'W');
+        auto const parsed_lng = parse_coord(info.longtitude, 'E', 'W');
 
         auto const buffer_offset = snprintf(buffer, buffer_size,
             ";%-9s%c"                  // name and status
+            "%02hhd%02hhd%02hhdz"      // time
             "%02hhd%02hhd.%02hhd%c"    // latitude
             "%c"                       // overlay
             "%03hhd%02hhd.%02hhd%c"    // longtitude
@@ -293,6 +294,7 @@ namespace APRS {
             "%s",                      // comment
             info.name.c_str(),
             info.is_live ? '*' : '_',  // is not killed?
+            info.hour, info.minute, info.second,
             parsed_lat.degrees, parsed_lat.minutes, parsed_lat.fractional_minutes, parsed_lat.cardinal_direction,
             info.overlay,
             parsed_lng.degrees, parsed_lng.minutes, parsed_lng.fractional_minutes, parsed_lng.cardinal_direction,
@@ -304,8 +306,10 @@ namespace APRS {
         char buffer[256];
         auto buffer_offset = write_aprs_metadata(buffer, sizeof(buffer), aprs_metadata);
         buffer_offset += write_aprs_object_payload(buffer+buffer_offset, sizeof(buffer)-buffer_offset, object_info);
-        if (buffer_offset == sizeof(buffer))
+        if (buffer_offset == sizeof(buffer)) {
+            show_display({"[ERROR]", "buffer overrun: aborted"});
             return TooLong;
+        }
         show_display({"[TX]", buffer});
         LoRa_Utils::sendNewPacket(buffer);
         return Success;

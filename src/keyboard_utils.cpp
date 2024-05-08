@@ -152,21 +152,7 @@ namespace KEYBOARD_Utils {
     void downArrow() {
         if (menuDisplay == 0) {  // if on main/default screen
             if (displayState) {  // if display is on
-                APRS::publish_object({
-                        .from = currentBeacon->callsign,
-                        .to = "APRS",
-                    },
-                    {
-                        .name = "TESTOBJT",
-                        .time = "",
-                        .comment = "",
-                        .latitude = gps.location.lat(),
-                        .longtitude = gps.location.lng(),
-                        .is_live = true,
-                        .overlay = '/',
-                        .symbol = '['
-                    });
-                // sendUpdate = !sendUpdate;
+                sendUpdate = !sendUpdate;
             } else {  // turn display on
                 display_toggle(true);
                 displayTime = millis();   
@@ -329,20 +315,6 @@ namespace KEYBOARD_Utils {
 
     void rightArrow() {
         if (menuDisplay == 0 || menuDisplay == 200) {
-            APRS::publish_object({
-                    .from = currentBeacon->callsign,
-                    .to = "APRS",
-                },
-                {
-                    .name = "TESTOBJT",
-                    .time = "",
-                    .comment = "",
-                    .latitude = gps.location.lat(),
-                    .longtitude = gps.location.lng(),
-                    .is_live = true,
-                    .overlay = '/',
-                    .symbol = '['
-                });
             return;
             if(myBeaconsIndex >= (myBeaconsSize-1)) {
                 myBeaconsIndex = 0;
@@ -888,4 +860,60 @@ namespace KEYBOARD_Utils {
         }
     }
 
+}
+namespace Object {
+    std::vector<APRS::Object> registered_objects = std::vector<APRS::Object>();
+    void place() {
+        show_display({"<><><><>", "Placing a marker"}, 1000);
+        auto const object_count = registered_objects.size();
+        String object_name = String("TESTOBJT") + (object_count == 0 ? String("") : String(object_count));
+        show_display({object_name}, 1000);
+        APRS::Object object {
+                .name = object_name,
+                .comment = "",
+                .latitude = gps.location.lat(),
+                .longtitude = gps.location.lng(),
+                .is_live = true,
+                .hour = gps.time.hour(),
+                .minute = gps.time.minute(),
+                .second = gps.time.second(),
+                .overlay = '/',
+                .symbol = '['
+        };
+        APRS::publish_object({
+                .from = currentBeacon->callsign,
+                .to = "APRS",
+            }, object);
+        registered_objects.emplace_back(object);
+    }
+    void remove_last() {
+        if (registered_objects.empty())
+            return;
+
+        auto object = *registered_objects.end();
+        registered_objects.pop_back();
+        object.is_live = false;
+        APRS::publish_object({
+                .from = currentBeacon->callsign,
+                .to = "APRS",
+            }, object);
+    }
+    void remove_all() {
+        for (auto object : registered_objects) {
+            object.is_live = false;
+            APRS::publish_object({
+                .from = currentBeacon->callsign,
+                .to = "APRS",
+            }, object);
+        }
+        registered_objects.clear();
+    }
+    void retransmit_all() {
+        for (auto const object : registered_objects) {
+            APRS::publish_object({
+                .from = currentBeacon->callsign,
+                .to = "APRS",
+            }, object);
+        }
+    }
 }

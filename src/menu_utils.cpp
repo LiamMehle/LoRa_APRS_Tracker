@@ -628,7 +628,7 @@ namespace MENU_Utils {
                 } else {
                     MainMenu[5] = "No Battery Connected" ;
                 }
-                char const* const button_status_string = sendUpdate ? "y" : "X";                
+                char const* const button_status_string = ((gpio_input_get()>>4) & 1) == 1 ? "y" : "X";
                 //memcpy((void*)&MainMenu[3][18], button_status_string, 1);
                 MainMenu[3][8] = *button_status_string;
                 show_display({MainMenu[0],
