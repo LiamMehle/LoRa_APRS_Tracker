@@ -1,4 +1,3 @@
-#include <optional>
 #include <TinyGPS++.h>
 #include <logger.h>
 #include <Wire.h>
@@ -12,6 +11,7 @@
 #include "pins_config.h"
 #include "msg_utils.h"
 #include "display.h"
+#include "lora_utils.h"
 
 #ifdef TTGO_T_DECK_GPS
 #define KB_ADDR     0x55    // T-Deck internal keyboard (Keyboard Backlight On = ALT + B)
