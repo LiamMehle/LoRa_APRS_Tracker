@@ -152,7 +152,20 @@ namespace KEYBOARD_Utils {
     void downArrow() {
         if (menuDisplay == 0) {  // if on main/default screen
             if (displayState) {  // if display is on
-                publish_object();
+                APRS::publish_object({
+                        .from = currentBeacon->callsign,
+                        .to = "APRS",
+                    },
+                    {
+                        .name = "TESTOBJT",
+                        .time = "",
+                        .comment = "",
+                        .latitude = gps.location.lat(),
+                        .longtitude = gps.location.lng(),
+                        .is_live = true,
+                        .overlay = '/',
+                        .symbol = '['
+                    });
                 // sendUpdate = !sendUpdate;
             } else {  // turn display on
                 display_toggle(true);
@@ -316,7 +329,20 @@ namespace KEYBOARD_Utils {
 
     void rightArrow() {
         if (menuDisplay == 0 || menuDisplay == 200) {
-            publish_object(true);
+            APRS::publish_object({
+                    .from = currentBeacon->callsign,
+                    .to = "APRS",
+                },
+                {
+                    .name = "TESTOBJT",
+                    .time = "",
+                    .comment = "",
+                    .latitude = gps.location.lat(),
+                    .longtitude = gps.location.lng(),
+                    .is_live = true,
+                    .overlay = '/',
+                    .symbol = '['
+                });
             return;
             if(myBeaconsIndex >= (myBeaconsSize-1)) {
                 myBeaconsIndex = 0;

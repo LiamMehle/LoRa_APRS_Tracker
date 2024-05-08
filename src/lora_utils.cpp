@@ -245,7 +245,7 @@ namespace APRS {
                 buffer_size-buffer_offset, // no more than available space
                 ",%s", path.c_str());         // ",<callsign>"
 
-        if (buffer_size - 2 <= buffer_offset) return;
+        if (buffer_size - 2 <= buffer_offset) return buffer_offset;
 
         buffer[buffer_offset++] = ':';
         buffer[buffer_offset] = 0;            // null-terminate
@@ -291,21 +291,22 @@ namespace APRS {
             "%03hhd%02hhd.%02hhd%c"    // longtitude
             "%c"                       // symbol
             "%s",                      // comment
-            info.name,
+            info.name.c_str(),
             info.is_live ? '*' : '_',  // is not killed?
             parsed_lat.degrees, parsed_lat.minutes, parsed_lat.fractional_minutes, parsed_lat.cardinal_direction,
             info.overlay,
             parsed_lng.degrees, parsed_lng.minutes, parsed_lng.fractional_minutes, parsed_lng.cardinal_direction,
             info.symbol,
-            info.comment);
+            info.comment.c_str());
         return buffer_offset;
     }
     PublishObjectStatus publish_object(PacketMetadata const aprs_metadata, Object const object_info) {
         char buffer[256];
         auto buffer_offset = write_aprs_metadata(buffer, sizeof(buffer), aprs_metadata);
-        buffer_offset += write_aprs_object_payload(buffer, sizeof(buffer)-buffer_offset, object_info);
+        buffer_offset += write_aprs_object_payload(buffer+buffer_offset, sizeof(buffer)-buffer_offset, object_info);
         if (buffer_offset == sizeof(buffer))
             return TooLong;
+        show_display({"[TX]", buffer});
         LoRa_Utils::sendNewPacket(buffer);
         return Success;
     }
