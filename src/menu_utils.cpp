@@ -522,15 +522,25 @@ namespace MENU_Utils {
                     if (time_now % 10 < 5) {
                         MainMenu[2] = String(gps.location.lat(), 4) + " " + String(gps.location.lng(), 4);
                     } else {
-                        MainMenu[2] = String(Utils::getMaidenheadLocator(gps.location.lat(), gps.location.lng(), 8));
-                        MainMenu[2] += " LoRa[";
-                        if (loraIndex == 0) {
-                            MainMenu[2] += "Eu]";
-                        } else if (loraIndex == 1) {
-                            MainMenu[2] += "PL]";
-                        } else if (loraIndex == 2) {
-                            MainMenu[2] += "UK]";
-                        }
+                        char buffer[22] = {0};
+                        snprintf(buffer, 21, "%4d/%-2d%c %-3d %5d",
+                            gps.sentencesWithFix(),
+                            gps.satellites.value(),
+                            gps.satellites.isValid() ? '!' : 'X',
+                            gps.hdop.value(),
+                            gps.charsProcessed());
+                        MainMenu[2] = buffer;
+                        
+                        
+                        // MainMenu[2] = String(Utils::getMaidenheadLocator(gps.location.lat(), gps.location.lng(), 8));
+                        // MainMenu[2] += " LoRa[";
+                        // if (loraIndex == 0) {
+                        //     MainMenu[2] += "Eu]";
+                        // } else if (loraIndex == 1) {
+                        //     MainMenu[2] += "PL]";
+                        // } else if (loraIndex == 2) {
+                        //     MainMenu[2] += "UK]";
+                        // }
                     }
                     
                     for(int i = MainMenu[2].length(); i < 18; i++) {
