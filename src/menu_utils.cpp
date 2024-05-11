@@ -495,16 +495,22 @@ namespace MENU_Utils {
             case 0:       ///////////// MAIN MENU //////////////
                 String hdopState, firstRowMainMenu, secondRowMainMenu, thirdRowMainMenu, fourthRowMainMenu, fifthRowMainMenu, sixthRowMainMenu;
 
-                firstRowMainMenu = currentBeacon->callsign;
-                if (Config.display.showSymbol) {
-                    for (int j = firstRowMainMenu.length(); j < 9; j++) {
-                        firstRowMainMenu += " ";
-                    }
-                    if (!symbolAvailable) {
-                        firstRowMainMenu += currentBeacon->symbol;
-                    }
+                // firstRowMainMenu = currentBeacon->callsign;
+                // if (Config.display.showSymbol) {
+                //     for (int j = firstRowMainMenu.length(); j < 9; j++) {
+                //         firstRowMainMenu += " ";
+                //     }
+                //     if (!symbolAvailable) {
+                //         firstRowMainMenu += currentBeacon->symbol;
+                //     }
+                // }
+                {
+                    char buffer[22]; // 21 characters per line + null
+                    char const* const callsign = currentBeacon->callsign.c_str();
+                    char const* const symbol = (Config.display.showSymbol && !symbolAvailable) ? currentBeacon->symbol.c_str() : "";
+                    snprintf(buffer, sizeof(buffer), "%-9s%s", callsign, symbol);
+                    firstRowMainMenu = String(buffer);
                 }
-
                 #ifdef TTGO_T_LORA32_V2_1_TNC
                 secondRowMainMenu = "";
                 thirdRowMainMenu = "    LoRa APRS TNC";
