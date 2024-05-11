@@ -34,6 +34,7 @@ ________________________________________________________________________________
 #include "gps_utils.h"
 #include "bme_utils.h"
 #include "ble_utils.h"
+#include "object.hpp"
 #include "display.h"
 #include "SPIFFS.h"
 #include "utils.h"
@@ -182,10 +183,10 @@ void setup() {
         userButton.attachLongPressStart(BUTTON_Utils::longPress);
         userButton.attachDoubleClick(BUTTON_Utils::doublePress);
         userButton.attachMultiClick(BUTTON_Utils::multiPress);
-        objectButton.attachClick(Object::place);
-        objectButton.attachDoubleClick(Object::remove_last);
-        objectButton.attachLongPressStart(Object::retransmit_all);
-        objectButton.attachMultiClick(Object::remove_all);
+        objectButton.attachClick(APRS::object::place);
+        objectButton.attachDoubleClick(APRS::object::remove_last);
+        objectButton.attachLongPressStart(APRS::object::retransmit_all);
+        objectButton.attachMultiClick(APRS::object::remove_all);
         #endif
         KEYBOARD_Utils::setup();
     }
