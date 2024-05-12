@@ -397,23 +397,11 @@ void show_display(
     display.println(header);
     display.setTextSize(1);
 
-    struct Line {
-        uint8_t row;
-        char const* const text;
-    };
-    auto const print_line = [](Line l) {
-        display.setCursor(0, l.row);
-        display.println(l.text);
-    };
-    Line const lines[] = {
-        {16, line1},
-        {26, line2},
-        {36, line3},
-        {46, line4},
-        {56, line5},
-    };
-    for (auto const line : lines)
-        print_line(line);
+    char const* const lines[] = { line1, line2, line3, line4, line5 };
+    for (unsigned i=0; i<5; i++) {
+        display.setCursor(0, 16+10*i);
+        display.println(lines[i]);
+    }
 
     #ifdef ssd1306
     display.ssd1306_command(SSD1306_SETCONTRAST);

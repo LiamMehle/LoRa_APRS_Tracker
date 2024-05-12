@@ -629,12 +629,12 @@ namespace MENU_Utils {
                 } else {
                     sixthRowMainMenu = "No Battery Connected" ;
                 }
-                show_display(firstRowMainMenu,
-                             secondRowMainMenu,
-                             thirdRowMainMenu,
-                             fourthRowMainMenu,
-                             fifthRowMainMenu,
-                             sixthRowMainMenu);
+                show_display(firstRowMainMenu.c_str(),
+                             secondRowMainMenu.c_str(),
+                             thirdRowMainMenu.c_str(),
+                             fourthRowMainMenu.c_str(),
+                             fifthRowMainMenu.c_str(),
+                             sixthRowMainMenu.c_str());
                 break;
         }
     }
