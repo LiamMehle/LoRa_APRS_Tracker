@@ -35,6 +35,7 @@ ________________________________________________________________________________
 #include "bme_utils.h"
 #include "ble_utils.h"
 #include "display.h"
+#include "perf.cpp"
 #include "SPIFFS.h"
 #include "utils.h"
 
@@ -145,7 +146,7 @@ void setup() {
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Main", "Setup Done!");
     menuDisplay = 0;
 }
-
+PerfTimer<128> timer;
 void loop() {
     currentBeacon = &Config.beacons[myBeaconsIndex];
     if (statusState) {
@@ -211,7 +212,13 @@ void loop() {
   
     if (millis() - refreshDisplayTime >= 1000 || gps_time_update) {
         GPS_Utils::checkStartUpFrames();
-        MENU_Utils::showOnScreen();
+        timer.measure(MENU_Utils::showOnScreen);
+        char buffer[4][22];
+        snprintf(buffer[0], sizeof(buffer[0]), "perf:");
+        snprintf(buffer[1], sizeof(buffer[1]), "average:% 9.4fms", timer.average());
+        snprintf(buffer[2], sizeof(buffer[2]), "std dev:% 4.1lfus", timer.std_dev());
+        show_display(buffer[0], buffer[1], buffer[2], "", "", "");
+        sleep(5);
         refreshDisplayTime = millis();
     }
 }
