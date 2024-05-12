@@ -320,6 +320,136 @@ void show_display(String header, String line1, String line2, String line3, Strin
     delay(wait);
 }
 
+void show_display(
+    char const* const header,
+    char const* const line1,
+    char const* const line2,
+    char const* const line3,
+    char const* const line4,
+    char const* const line5) {
+    #ifdef HAS_TFT
+    if (menuDisplay != lastMenuDisplay) {
+        lastMenuDisplay = menuDisplay;
+        cleanTFT();
+    }
+    //tft.setTextColor(TFT_RED,TFT_BLACK);
+    tft.setTextColor(TFT_WHITE,TFT_BLACK);
+    tft.setTextSize(bigSizeFont);
+    tft.setCursor(0, 0);
+    tft.print(header);
+    tft.setTextSize(smallSizeFont);
+    tft.setCursor(0, ((lineSpacing * 2) - 2));
+    tft.print(line1);
+    tft.setCursor(0, ((lineSpacing * 3) - 2));
+    tft.print(line2);
+    tft.setCursor(0, ((lineSpacing * 4) - 2));
+    tft.print(line3);
+    tft.setCursor(0, ((lineSpacing * 5) - 2));
+    tft.print(line4);
+    tft.setCursor(0, ((lineSpacing *6) - 2));
+    tft.print(line5);
+
+    if (menuDisplay == 0 && Config.display.showSymbol) {
+        int symbol = 100;
+        for (int i = 0; i < symbolArraySize; i++) {
+            if (currentBeacon->symbol == symbolArray[i]) {
+                symbol = i;
+                break;
+            }
+        }
+
+        symbolAvailable = symbol != 100;
+
+        /*
+        * Symbol alternate every 5s
+        * If bluetooth is disconnected or if we are in the first part of the clock, then we show the APRS symbol
+        * Otherwise, we are in the second part of the clock, then we show BT connected
+        */
+        const auto time_now = now();
+        if (!bluetoothConnected || time_now % 10 < 5) {
+            if (symbolAvailable) {
+                #if HELTEC_WIRELESS_TRACKER
+                tft.drawBitmap((TFT_WIDTH - SYMBOL_WIDTH + (128 - TFT_WIDTH)), 0, symbolsAPRS[symbol], SYMBOL_WIDTH, SYMBOL_HEIGHT, TFT_WHITE);//, TFT_RED);
+                #endif
+                #if TTGO_T_DECK_GPS
+                tft.drawBitmap((TFT_WIDTH - SYMBOL_WIDTH), 0, symbolsAPRS[symbol], SYMBOL_WIDTH, SYMBOL_HEIGHT, TFT_WHITE);//, TFT_RED);
+                #endif
+            }
+        } else if (bluetoothConnected) {    // TODO In this case, the text symbol stay displayed due to symbolAvailable false in menu_utils
+            #if HELTEC_WIRELESS_TRACKER
+            tft.drawBitmap((TFT_WIDTH - SYMBOL_WIDTH + (128 - TFT_WIDTH)), 0, bluetoothSymbol, SYMBOL_WIDTH, SYMBOL_HEIGHT, TFT_WHITE);
+            #endif
+            #if TTGO_T_DECK_GPS
+            tft.drawBitmap((TFT_WIDTH - SYMBOL_WIDTH), 0, bluetoothSymbol, SYMBOL_WIDTH, SYMBOL_HEIGHT, TFT_WHITE);
+            #endif
+        }
+    }
+
+    #else
+    display.clearDisplay();
+    #ifdef ssd1306
+    display.setTextColor(WHITE);
+    #else
+    display.setTextColor(SH110X_WHITE);
+    #endif
+    display.setTextSize(2);
+    display.setCursor(0, 0);
+    display.println(header);
+    display.setTextSize(1);
+
+    struct Line {
+        uint8_t row;
+        char const* const text;
+    };
+    auto const print_line = [](Line l) {
+        display.setCursor(0, l.row);
+        display.println(l.text);
+    };
+    Line const lines[] = {
+        {16, line1},
+        {26, line2},
+        {36, line3},
+        {46, line4},
+        {56, line5},
+    };
+    for (auto const line : lines)
+        print_line(line);
+
+    #ifdef ssd1306
+    display.ssd1306_command(SSD1306_SETCONTRAST);
+    display.ssd1306_command(screenBrightness);
+    #endif
+
+    if (menuDisplay == 0 && Config.display.showSymbol) {
+        int symbol = 100;
+        for (int i = 0; i < symbolArraySize; i++) {
+            if (currentBeacon->symbol == symbolArray[i]) {
+                symbol = i;
+                break;
+            }
+        }
+
+        symbolAvailable = symbol != 100;
+
+        /*
+        * Symbol alternate every 5s
+        * If bluetooth is disconnected or if we are in the first part of the clock, then we show the APRS symbol
+        * Otherwise, we are in the second part of the clock, then we show BT connected
+        */
+        const auto time_now = now();
+        if (!bluetoothConnected || time_now % 10 < 5) {
+            if (symbolAvailable) {
+                display.drawBitmap((display.width() - SYMBOL_WIDTH), 0, symbolsAPRS[symbol], SYMBOL_WIDTH, SYMBOL_HEIGHT, 1);
+            }
+        } else if (bluetoothConnected) {
+            // TODO In this case, the text symbol stay displayed due to symbolAvailable false in menu_utils
+            display.drawBitmap((display.width() - SYMBOL_WIDTH), 0, bluetoothSymbol, SYMBOL_WIDTH, SYMBOL_HEIGHT, 1);
+        }
+    }
+    
+    display.display();
+    #endif
+}
 void show_display(String header, String line1, String line2, String line3, String line4, String line5, int wait) {
     #ifdef HAS_TFT
     if (menuDisplay != lastMenuDisplay) {
