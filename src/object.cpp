@@ -1,5 +1,8 @@
+#include "configuration.h"
 #include "object.hpp"
 #include "lora_utils.h"
+
+extern Configuration    Config;
 
 namespace APRS {
     // writes the beginning of an APRS packet into provided buffer ending with ':'. After that comes the payload.
@@ -83,6 +86,7 @@ namespace APRS {
     }
     namespace object {
         std::vector<APRS::Object> registered_objects = std::vector<APRS::Object>();
+
         void place() {
             auto const object_count = registered_objects.size();
             String object_name = String("TESTOBJT") + (object_count == 0 ? String("") : String(object_count));
@@ -102,6 +106,7 @@ namespace APRS {
             APRS::publish_object({
                     .from = currentBeacon->callsign,
                     .to = "APRS",
+                    .path = {Config.path}
                 }, object);
             registered_objects.emplace_back(object);
         }
@@ -114,6 +119,7 @@ namespace APRS {
             APRS::publish_object({
                     .from = currentBeacon->callsign,
                     .to = "APRS",
+                    .path = {Config.path}
                 }, object);
             registered_objects.pop_back();
         }
@@ -123,7 +129,9 @@ namespace APRS {
                 APRS::publish_object({
                     .from = currentBeacon->callsign,
                     .to = "APRS",
+                    .path = {Config.path}
                 }, object);
+                usleep(100000);
             }
             registered_objects.clear();
         }
@@ -132,7 +140,9 @@ namespace APRS {
                 APRS::publish_object({
                     .from = currentBeacon->callsign,
                     .to = "APRS",
+                    .path = {Config.path}
                 }, object);
+                usleep(100000);
             }
         }
     }
