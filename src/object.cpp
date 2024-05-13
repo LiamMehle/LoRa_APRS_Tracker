@@ -86,11 +86,11 @@ namespace APRS {
     }
     namespace object {
         std::vector<APRS::Object> registered_objects = std::vector<APRS::Object>();
+        char const* const object_basename = "OBJECT";
 
         void place() {
-            auto const object_count = registered_objects.size();
-            String object_name = String("TESTOBJT") + (object_count == 0 ? String("") : String(object_count));
-            show_display({object_name}, 1000);
+            char object_name[10];
+            snprintf(object_name, sizeof(object_name), "%6s%03d", object_basename, registered_objects.size());
             APRS::Object object {
                     .name = object_name,
                     .comment = "",
