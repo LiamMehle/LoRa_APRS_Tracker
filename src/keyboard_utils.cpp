@@ -13,9 +13,9 @@
 #include "display.h"
 
 #ifdef TTGO_T_DECK_GPS
-#define KB_ADDR     0x55    // T-Deck internal keyboard (Keyboard Backlight On = ALT + B)
+    #define KB_ADDR     0x55    // T-Deck internal keyboard (Keyboard Backlight On = ALT + B)
 #else
-#define KB_ADDR     0x5F    // CARDKB from m5stack.com (YEL - SDA / WTH SCL)
+    #define KB_ADDR     0x5F    // CARDKB from m5stack.com (YEL - SDA / WTH SCL)
 #endif
 
 
@@ -29,9 +29,6 @@ extern uint32_t         menuTime;
 extern uint8_t          myBeaconsIndex;
 extern int              myBeaconsSize;
 extern uint8_t          loraIndex;
-extern bool             keyboardConnected;
-extern bool             keyDetected;
-extern uint32_t         keyboardTime;
 extern bool             displayState;
 extern uint32_t         displayTime;
 extern bool             displayEcoMode;
@@ -57,17 +54,26 @@ extern bool             winlinkCommentState;
 
 extern std::vector<String>  outputMessagesBuffer;
 
-bool mouseUpState           = 0;
-bool mouseDownState         = 0;
-bool mouseLeftState         = 0;
-bool mouseRightState        = 0;
-int debounceInterval        = 50;
-uint32_t lastDebounceTime   = millis();
-int upCounter               = 0;
-int downCounter             = 0;
-int leftCounter             = 0;
-int rightCounter            = 0;
-int trackBallSensitivity    = 5;
+bool        keyboardConnected       = false;
+bool        keyDetected             = false;
+uint32_t    keyboardTime            = millis();
+
+String      messageCallsign         = "";
+String      messageText             = "";
+
+int         messagesIterator        = 0;
+
+bool        mouseUpState            = 0;
+bool        mouseDownState          = 0;
+bool        mouseLeftState          = 0;
+bool        mouseRightState         = 0;
+int         debounceInterval        = 50;
+uint32_t    lastDebounceTime        = millis();
+int         upCounter               = 0;
+int         downCounter             = 0;
+int         leftCounter             = 0;
+int         rightCounter            = 0;
+int         trackBallSensitivity    = 5;
 
 
 namespace KEYBOARD_Utils {
@@ -771,69 +777,70 @@ namespace KEYBOARD_Utils {
 
     void mouseRead() {
         #ifdef TTGO_T_DECK_GPS
-        int ballUp      = digitalRead(TrackBallUp);
-        int ballDown    = digitalRead(TrackBallDown);
-        int ballLeft    = digitalRead(TrackBallLeft);
-        int ballRight   = digitalRead(TrackBallRight);
+            int ballUp      = digitalRead(TrackBallUp);
+            int ballDown    = digitalRead(TrackBallDown);
+            int ballLeft    = digitalRead(TrackBallLeft);
+            int ballRight   = digitalRead(TrackBallRight);
 
-        if (!digitalRead(TrackBallCenter)) {
-            processPressedKey(13);
-        } else if (ballUp != mouseUpState && ballDown == mouseDownState && ballLeft == mouseLeftState && ballRight == mouseRightState) {
-            if (millis() - lastDebounceTime > debounceInterval) {
-                lastDebounceTime = millis();
-                mouseUpState = ballUp;
-                upCounter++;
+            if (!digitalRead(TrackBallCenter)) {
+                processPressedKey(13);
+            } else if (ballUp != mouseUpState && ballDown == mouseDownState && ballLeft == mouseLeftState && ballRight == mouseRightState) {
+                if (millis() - lastDebounceTime > debounceInterval) {
+                    lastDebounceTime = millis();
+                    mouseUpState = ballUp;
+                    upCounter++;
+                }
+            } else if (ballDown != mouseDownState && ballUp == mouseUpState && ballLeft == mouseLeftState && ballRight == mouseRightState) {
+                if (millis() - lastDebounceTime > debounceInterval) {
+                    lastDebounceTime = millis();
+                    mouseDownState = ballDown;
+                    downCounter++;
+                }
+            } else if (ballLeft != mouseLeftState && ballUp == mouseUpState && ballDown == mouseDownState && ballRight == mouseRightState) {
+                if (millis() - lastDebounceTime > debounceInterval) {
+                    lastDebounceTime = millis();
+                    mouseLeftState = ballLeft;
+                    leftCounter++;
+                }
+            } else if (ballRight != mouseRightState && ballUp == mouseUpState && ballDown == mouseDownState && ballLeft == mouseLeftState) {
+                if (millis() - lastDebounceTime > debounceInterval) {
+                    lastDebounceTime = millis();
+                    mouseRightState = ballRight;
+                    rightCounter++;
+                }
             }
-        } else if (ballDown != mouseDownState && ballUp == mouseUpState && ballLeft == mouseLeftState && ballRight == mouseRightState) {
-            if (millis() - lastDebounceTime > debounceInterval) {
-                lastDebounceTime = millis();
-                mouseDownState = ballDown;
-                downCounter++;
+            if (upCounter == trackBallSensitivity) {
+                clearTrackballCounter();
+                upArrow();
+            } else if (downCounter == trackBallSensitivity) {
+                clearTrackballCounter();
+                downArrow();
+            } else if (leftCounter == trackBallSensitivity) {
+                clearTrackballCounter();
+                leftArrow();
+            } else if (rightCounter == trackBallSensitivity) {
+                clearTrackballCounter();
+                rightArrow();
             }
-        } else if (ballLeft != mouseLeftState && ballUp == mouseUpState && ballDown == mouseDownState && ballRight == mouseRightState) {
-            if (millis() - lastDebounceTime > debounceInterval) {
-                lastDebounceTime = millis();
-                mouseLeftState = ballLeft;
-                leftCounter++;
-            }
-        } else if (ballRight != mouseRightState && ballUp == mouseUpState && ballDown == mouseDownState && ballLeft == mouseLeftState) {
-            if (millis() - lastDebounceTime > debounceInterval) {
-                lastDebounceTime = millis();
-                mouseRightState = ballRight;
-                rightCounter++;
-            }
-        }
-        if (upCounter == trackBallSensitivity) {
-            clearTrackballCounter();
-            upArrow();
-        } else if (downCounter == trackBallSensitivity) {
-            clearTrackballCounter();
-            downArrow();
-        } else if (leftCounter == trackBallSensitivity) {
-            clearTrackballCounter();
-            leftArrow();
-        } else if (rightCounter == trackBallSensitivity) {
-            clearTrackballCounter();
-            rightArrow();
-        }
         #endif
     }
 
     void read() {
-        uint32_t lastKey = millis() - keyboardTime;
-        if (lastKey > 30*1000) {
-            keyDetected = false;
-        }
-        Wire.requestFrom(KB_ADDR, 1);
-        while(Wire.available()) {
-            char c = Wire.read();
-            if (c != 0) {
+        if (keyboardConnected) {
+            uint32_t lastKey = millis() - keyboardTime;
+            if (lastKey > 30*1000) {
+                keyDetected = false;
+            }
+            Wire.requestFrom(KB_ADDR, 1);
+            while(Wire.available()) {
+                char c = Wire.read();
+                if (c != 0) {
+                    // just for debugging
+                    //Serial.print(c, DEC); Serial.print(" "); Serial.print(c, HEX); Serial.print(" "); Serial.println(char(c));
 
-                // just for debugging
-                //Serial.print(c, DEC); Serial.print(" "); Serial.print(c, HEX); Serial.print(" "); Serial.println(char(c));
-
-                keyboardTime = millis();
-                processPressedKey(c);      
+                    keyboardTime = millis();
+                    processPressedKey(c);      
+                }
             }
         }
     }

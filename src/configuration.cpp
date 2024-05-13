@@ -28,6 +28,7 @@ void Configuration::readFile(fs::FS &fs, const char *fileName) {
         Beacon bcn;
 
         bcn.callsign          = BeaconsArray[i]["callsign"].as<String>();
+        bcn.callsign.toUpperCase();
         bcn.symbol            = BeaconsArray[i]["symbol"].as<String>();
         bcn.overlay           = BeaconsArray[i]["overlay"].as<String>();
         bcn.micE              = BeaconsArray[i]["micE"].as<String>();
@@ -53,8 +54,9 @@ void Configuration::readFile(fs::FS &fs, const char *fileName) {
     winlink.password              = data["winlink"]["password"].as<String>();
 
     bme.active                    = data["bme"]["active"].as<bool>();
-    bme.sendTelemetry             = data["bme"]["sendTelemetry"].as<bool>();
     bme.heightCorrection          = data["bme"]["heightCorrection"].as<int>();
+    bme.temperatureCorrection     = data["bme"]["temperatureCorrection"].as<float>();
+    bme.sendTelemetry             = data["bme"]["sendTelemetry"].as<bool>();
 
     notification.ledTx            = data["notification"]["ledTx"].as<bool>();
     notification.ledTxPin         = data["notification"]["ledTxPin"].as<int>();

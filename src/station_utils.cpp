@@ -21,12 +21,7 @@ extern uint8_t              loraIndex;
 extern uint32_t             lastTx;
 extern uint32_t             lastTxTime;
 
-extern uint32_t             telemetryTx;
-extern uint32_t             lastTelemetryTx;
-
 extern bool                 sendUpdate;
-extern uint8_t              updateCounter;
-extern bool                 sendStandingUpdate;
 
 extern uint32_t             txInterval;
 extern uint32_t             lastTx;
@@ -43,17 +38,22 @@ extern bool                 smartBeaconValue;
 extern uint8_t              winlinkStatus;
 extern bool                 winlinkCommentState;
 
-extern bool                 wxRequestStatus;
-extern uint32_t             wxRequestTime;
+extern int                  wxModuleType;//                 bmeSensorFound;
 
-extern bool                 bmeSensorFound;
+bool	    sendStandingUpdate      = false;
+uint8_t     updateCounter           = Config.sendCommentAfterXBeacons;
+bool        wxRequestStatus         = false;
+uint32_t    wxRequestTime           = 0;
 
-String                      firstNearTracker;
-String                      secondNearTracker;
-String                      thirdNearTracker;
-String                      fourthNearTracker;
+uint32_t    lastTelemetryTx         = millis();
+uint32_t    telemetryTx             = millis();
 
-uint32_t                    lastDeleteListenedTracker;
+String      firstNearTracker;
+String      secondNearTracker;
+String      thirdNearTracker;
+String      fourthNearTracker;
+
+uint32_t    lastDeleteListenedTracker;
 
 
 
@@ -404,10 +404,10 @@ namespace STATION_Utils {
             } else {
                 packet = APRSPacketLib::generateGPSBeaconPacket(currentBeacon->callsign, "APLRT1", Config.path, "/", APRSPacketLib::encodeGPS(gps.location.lat(),gps.location.lng(), gps.course.deg(), gps.speed.knots(), currentBeacon->symbol, Config.sendAltitude, gps.altitude.feet(), sendStandingUpdate, "Wx"));
             }
-            if (bmeSensorFound) {
+            if (wxModuleType != 0) {//bmeSensorFound) {
                 packet += BME_Utils::readDataSensor("APRS");
             } else {
-                packet += ".../...g...t...r...p...P...h..b.....BME MODULE NOT FOUND! ";
+                packet += ".../...g...t...r...p...P...h..b.....";
             }            
         } else {
             if (miceActive) {
@@ -427,13 +427,13 @@ namespace STATION_Utils {
             String batteryVoltage = POWER_Utils::getBatteryInfoVoltage();
             String batteryChargeCurrent = POWER_Utils::getBatteryInfoCurrent();
             #if defined(TTGO_T_Beam_V1_0) || defined(TTGO_T_Beam_V1_0_SX1268)
-            comment += " Bat=" + batteryVoltage + "V (" + batteryChargeCurrent + "mA)";
+                comment += " Bat=" + batteryVoltage + "V (" + batteryChargeCurrent + "mA)";
             #endif
             #if defined(TTGO_T_Beam_V1_2) || defined(TTGO_T_Beam_V1_2_SX1262)
-            comment += " Bat=" + String(batteryVoltage.toFloat()/1000,2) + "V (" + batteryChargeCurrent + "%)";
+                comment += " Bat=" + String(batteryVoltage.toFloat()/1000,2) + "V (" + batteryChargeCurrent + "%)";
             #endif
             #if defined(HELTEC_V3_GPS) || defined(HELTEC_WIRELESS_TRACKER)
-            comment += " Bat=" + String(batteryVoltage.toFloat(),2) + "V";
+                comment += " Bat=" + String(batteryVoltage.toFloat(),2) + "V";
             #endif
         }
         if (comment != "") {
@@ -444,7 +444,7 @@ namespace STATION_Utils {
             } 
         }        
         #ifdef HAS_TFT
-        cleanTFT();
+            cleanTFT();
         #endif
         show_display("<<< TX >>>", "", packet,100);
         LoRa_Utils::sendNewPacket(packet);
