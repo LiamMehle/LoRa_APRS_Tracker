@@ -109,13 +109,13 @@ namespace APRS {
             if (registered_objects.empty())
                 return;
 
-            auto object = *registered_objects.end();
-            registered_objects.pop_back();
+            auto& object = registered_objects.back();
             object.is_live = false;
             APRS::publish_object({
                     .from = currentBeacon->callsign,
                     .to = "APRS",
                 }, object);
+            registered_objects.pop_back();
         }
         void remove_all() {
             for (auto object : registered_objects) {
