@@ -3,6 +3,9 @@
 #include "lora_utils.h"
 
 extern Configuration    Config;
+char object_overlay   = '/';
+char object_symbol    = '[';
+char object_name[10]  = "\0";
 
 namespace APRS {
     // writes the beginning of an APRS packet into provided buffer ending with ':'. After that comes the payload.
@@ -77,20 +80,25 @@ namespace APRS {
         auto buffer_offset = write_aprs_metadata(buffer, sizeof(buffer), aprs_metadata);
         buffer_offset += write_aprs_object_payload(buffer+buffer_offset, sizeof(buffer)-buffer_offset, object_info);
         if (buffer_offset == sizeof(buffer)) {
-            show_display("[ERROR]", "buffer overrun: aborted", 0);
+            show_display("[ERROR]", "buffer overrun: aborted");
+            sleep(2);
             return TooLong;
         }
-        show_display("[TX]", buffer, 0);
+        show_display("[TX]", buffer);
         LoRa_Utils::sendNewPacket(buffer);
         return Success;
     }
     namespace object {
         std::vector<APRS::Object> registered_objects = std::vector<APRS::Object>();
-        char const* const object_basename = "OBJECT";
+        // char const* const object_basename = "OBJECT";
 
         void place() {
-            char object_name[10];
-            snprintf(object_name, sizeof(object_name), "%6s%03d", object_basename, registered_objects.size());
+            // snprintf(object_name, sizeof(object_name), "%6s%03d", object_basename, registered_objects.size());
+            if (*object_name == '\0') {
+                show_display("undefined object name");
+                sleep(1);
+                return;
+            }
             APRS::Object object {
                     .name = object_name,
                     .comment = "",
@@ -100,9 +108,10 @@ namespace APRS {
                     .hour = gps.time.hour(),
                     .minute = gps.time.minute(),
                     .second = gps.time.second(),
-                    .overlay = '/',
-                    .symbol = '['
+                    .overlay = object_overlay,
+                    .symbol = object_symbol
             };
+            *object_name = '\0';
             APRS::publish_object({
                     .from = currentBeacon->callsign,
                     .to = "APRS",

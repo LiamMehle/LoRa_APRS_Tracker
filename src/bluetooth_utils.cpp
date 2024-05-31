@@ -6,7 +6,7 @@
 #include "lora_utils.h"
 #include "display.h"
 #include "logger.h"
-
+#include "object.hpp"
 
 extern Configuration    Config;
 extern BluetoothSerial  SerialBT;
@@ -14,6 +14,48 @@ extern logging::Logger  logger;
 extern TinyGPSPlus      gps;
 extern bool             bluetoothConnected;
 extern bool             bluetoothActive;
+
+extern int myBeaconsIndex;
+extern Beacon *currentBeacon;
+extern char object_overlay;
+extern char object_symbol;
+extern char object_name[10];
+extern char callsign[10];
+
+// possible optimization: prefix tree lookup and generation at comp time
+static
+void process_command(char* cmd) {
+    using Func = void (*)(char const*);
+    struct Mapping { char cmd[16]; Func f; };
+    Mapping commands[] = {
+        {{"cs"        }, [](char const* const parameters){ currentBeacon->callsign = String(parameters); strcpy(callsign, parameters); }},
+        {{"symbol"    }, [](char const* const parameters){ currentBeacon->symbol = String(parameters);                                 }},
+        {{"obj"       }, [](char const* const parameters){ APRS::object::place();                                                      }},
+        {{"objrep"    }, [](char const* const parameters){ APRS::object::retransmit_all();                                             }},
+        {{"objpop"    }, [](char const* const parameters){ APRS::object::remove_last();                                                }},
+        {{"objclear"  }, [](char const* const parameters){ APRS::object::remove_all();                                                 }},
+        {{"objname"   }, [](char const* const parameters){ snprintf(object_name, sizeof(object_name), "%9s", parameters); show_display("object name", object_name); sleep(1); }},
+        {{"objsymbol" }, [](char const* const parameters){ object_symbol  = *parameters; char object_symbol_str[3] = {object_overlay, object_symbol, 0}; show_display("obj sym", object_symbol_str); sleep(1); }},
+        {{"objoverlay"}, [](char const* const parameters){ object_overlay = *parameters; char object_symbol_str[3] = {object_overlay, object_symbol, 0}; show_display("obj sym", object_symbol_str); sleep(1); }},
+    };
+    char action[8];
+    int parameter_offset;
+    int const parse_status = sscanf(cmd, " %8[^ ] %n", action, &parameter_offset);
+    if (parse_status == 0)
+        return;
+    
+    char* parameters = cmd + parameter_offset;
+
+    for (char* p=action; *p != 0; p++)
+        *p = isupper(*p) ? tolower(*p) : *p;
+    for (char* p=parameters; *p != 0; p++)
+        *p = islower(*p) ? toupper(*p) : *p;
+    for (auto command : commands) {
+        if (strcmp(command.cmd, action) == 0) {
+            command.f(parameters);
+        }
+    }
+}
 
 namespace BLUETOOTH_Utils {
     String serialReceived;
@@ -102,7 +144,18 @@ namespace BLUETOOTH_Utils {
     }
 
     void sendToLoRa() {
-        if (!shouldSendToLoRa) {
+        if (!shouldSendToLoRa || serialReceived.length() == 0) {
+            return;
+        }
+        char address[10] = {0};
+        char content[257] = {0};
+        sscanf(serialReceived.c_str(), "%*[^:]::%9[^ :] :%256[^{]", address, content);
+        logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "cmd", "%s: %s", address, content);
+        if (strcmp(address, "SYSTEM") == 0) {
+            logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "cmd", "match, command=\"%s\"", content);
+            process_command(content);
+            shouldSendToLoRa = false;
+            serialReceived.clear();
             return;
         }
 
