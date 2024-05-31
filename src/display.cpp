@@ -2,7 +2,7 @@
 #include <Wire.h>
 #include "custom_characters.h"
 #include "configuration.h"
-#include "pins_config.h"
+#include "boards_pinout.h"
 #include "display.h"
 #include "TimeLib.h"
 
@@ -101,9 +101,6 @@ void setup_display() {
                 while (true) {
                 }
             }
-            if (Config.display.turn180) {
-                display.setRotation(2);
-            }
         #else
             if (!display.begin(0x3c, true)) {
                 logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "SH1106", "allocation failed!");
@@ -111,6 +108,9 @@ void setup_display() {
                 }
             }
         #endif
+        if (Config.display.turn180) {
+            display.setRotation(2);
+        }
         display.clearDisplay();
         #ifdef ssd1306
             display.setTextColor(WHITE);
@@ -122,6 +122,8 @@ void setup_display() {
         #ifdef ssd1306
             display.ssd1306_command(SSD1306_SETCONTRAST);
             display.ssd1306_command(screenBrightness);
+        #else
+            display.setContrast(screenBrightness);
         #endif
         display.display();
     #endif
@@ -131,79 +133,27 @@ void display_toggle(bool toggle) {
     if (toggle) {
         #ifdef HAS_TFT
             digitalWrite(TFT_BL, HIGH);
-        #endif
-        #ifdef ssd1306
-            display.ssd1306_command(SSD1306_DISPLAYON);
+        #else
+            #ifdef ssd1306
+                display.ssd1306_command(SSD1306_DISPLAYON); 
+            #else
+                display.oled_command(SH110X_DISPLAYON);
+            #endif
         #endif
     } else {
         #ifdef HAS_TFT
             digitalWrite(TFT_BL, LOW);
-        #endif
-        #ifdef ssd1306
-            display.ssd1306_command(SSD1306_DISPLAYOFF);
+        #else
+            #ifdef ssd1306
+                display.ssd1306_command(SSD1306_DISPLAYOFF);
+            #else
+                display.oled_command(SH110X_DISPLAYOFF);
+            #endif
         #endif
     }
 }
 
-void show_display(String header, int wait) {
-    #ifdef HAS_TFT
-        cleanTFT();
-        tft.setTextColor(TFT_WHITE,TFT_BLACK);
-        tft.setTextSize(bigSizeFont);
-        tft.setCursor(0, 0);
-        tft.print(header);
-    #else
-        display.clearDisplay();
-        #ifdef ssd1306
-            display.setTextColor(WHITE);
-        #else
-            display.setTextColor(SH110X_WHITE);
-        #endif
-        display.setTextSize(2);
-        display.setCursor(0, 0);
-        display.println(header);
-        #ifdef ssd1306
-            display.ssd1306_command(SSD1306_SETCONTRAST);
-            display.ssd1306_command(screenBrightness);
-        #endif
-        display.display();
-    #endif
-    delay(wait);
-}
-
-void show_display(String header, String line1, int wait) {
-    #ifdef HAS_TFT
-        cleanTFT();
-        tft.setTextColor(TFT_WHITE,TFT_BLACK);
-        tft.setTextSize(bigSizeFont);
-        tft.setCursor(0, 0);
-        tft.print(header);
-        tft.setTextSize(smallSizeFont);
-        tft.setCursor(0, ((lineSpacing * 2) - 2));
-        tft.print(line1);
-    #else
-        display.clearDisplay();
-        #ifdef ssd1306
-            display.setTextColor(WHITE);
-        #else
-            display.setTextColor(SH110X_WHITE);
-        #endif
-        display.setTextSize(2);
-        display.setCursor(0, 0);
-        display.println(header);
-        display.setTextSize(1);
-        display.setCursor(0, 16);
-        display.println(line1);
-        #ifdef ssd1306
-            display.ssd1306_command(SSD1306_SETCONTRAST);
-            display.ssd1306_command(screenBrightness);
-        #endif
-        display.display();
-    #endif
-    delay(wait);
-}
-
-void show_display(String header, String line1, String line2, int wait) {
+void show_display(const String& header, const String& line1, const String& line2, int wait) {
     #ifdef HAS_TFT
         cleanTFT();
         tft.setTextColor(TFT_WHITE,TFT_BLACK);
@@ -233,97 +183,15 @@ void show_display(String header, String line1, String line2, int wait) {
         #ifdef ssd1306
             display.ssd1306_command(SSD1306_SETCONTRAST);
             display.ssd1306_command(screenBrightness);
-        #endif
-        display.display();
-    #endif
-    delay(wait);
-}
-
-void show_display(String header, String line1, String line2, String line3, int wait) {
-    #ifdef HAS_TFT
-        cleanTFT();
-        tft.setTextColor(TFT_WHITE,TFT_BLACK);
-        tft.setTextSize(bigSizeFont);
-        tft.setCursor(0, 0);
-        tft.print(header);
-        tft.setTextSize(smallSizeFont);
-        tft.setCursor(0, ((lineSpacing * 2) - 2));
-        tft.print(line1);
-        tft.setCursor(0, ((lineSpacing * 3) - 2));
-        tft.print(line2);
-        tft.setCursor(0, ((lineSpacing * 4) - 2));
-        tft.print(line3);
-    #else
-        display.clearDisplay();
-        #ifdef ssd1306
-            display.setTextColor(WHITE);
         #else
-            display.setTextColor(SH110X_WHITE);
-        #endif
-        display.setTextSize(2);
-        display.setCursor(0, 0);
-        display.println(header);
-        display.setTextSize(1);
-        display.setCursor(0, 16);
-        display.println(line1);
-        display.setCursor(0, 26);
-        display.println(line2);
-        display.setCursor(0, 36);
-        display.println(line3);
-        #ifdef ssd1306
-            display.ssd1306_command(SSD1306_SETCONTRAST);
-            display.ssd1306_command(screenBrightness);
+            display.setContrast(screenBrightness);
         #endif
         display.display();
     #endif
     delay(wait);
 }
 
-void show_display(String header, String line1, String line2, String line3, String line4, int wait) {
-    #ifdef HAS_TFT
-        cleanTFT();
-        tft.setTextColor(TFT_WHITE,TFT_BLACK);
-        tft.setTextSize(bigSizeFont);
-        tft.setCursor(0, 0);
-        tft.print(header);
-        tft.setTextSize(smallSizeFont);
-        tft.setCursor(0, ((lineSpacing * 2) - 2));
-        tft.print(line1);
-        tft.setCursor(0, ((lineSpacing * 3) - 2));
-        tft.print(line2);
-        tft.setCursor(0, ((lineSpacing * 4) - 2));
-        tft.print(line3);
-        tft.setCursor(0, ((lineSpacing * 5) - 2));
-        tft.print(line4);
-    #else
-        display.clearDisplay();
-        #ifdef ssd1306
-            display.setTextColor(WHITE);
-        #else
-            display.setTextColor(SH110X_WHITE);
-        #endif
-        display.setTextSize(2);
-        display.setCursor(0, 0);
-        display.println(header);
-        display.setTextSize(1);
-        display.setCursor(0, 16);
-        display.println(line1);
-        display.setCursor(0, 26);
-        display.println(line2);
-        display.setCursor(0, 36);
-        display.println(line3);
-        display.setCursor(0, 46);
-        display.println(line4);
-        #ifdef ssd1306
-            display.ssd1306_command(SSD1306_SETCONTRAST);
-            display.ssd1306_command(screenBrightness);
-        #endif
-        display.display();
-    #endif
-    delay(wait);
-}
-
-void show_display(String header, String line1, String line2, String line3, String line4, String line5, int wait) {
+void show_display(const String& header, const String& line1, const String& line2, const String& line3, const String& line4, const String& line5, int wait) {
     #ifdef HAS_TFT
         if (menuDisplay != lastMenuDisplay) {
             lastMenuDisplay = menuDisplay;
@@ -406,6 +274,8 @@ void show_display(String header, String line1, String line2, String line3, Strin
         #ifdef ssd1306
             display.ssd1306_command(SSD1306_SETCONTRAST);
             display.ssd1306_command(screenBrightness);
+        #else
+            display.setContrast(screenBrightness);
         #endif
 
         if (menuDisplay == 0 && Config.display.showSymbol) {
@@ -440,14 +310,12 @@ void show_display(String header, String line1, String line2, String line3, Strin
     delay(wait);
 }
 
-void startupScreen(uint8_t index, String version) {
+void startupScreen(uint8_t index, const String& version) {
     String workingFreq = "    LoRa Freq [";
-    if (index == 0) {
-        workingFreq += "Eu]";
-    } else if (index == 1) {
-        workingFreq += "PL]";
-    } else if (index == 2) {
-        workingFreq += "UK]";
+    switch (index) {
+        case 0: workingFreq += "Eu]"; break;
+        case 1: workingFreq += "PL]"; break;
+        case 2: workingFreq += "UK]"; break;
     }
     show_display(" LoRa APRS", "      (TRACKER)", workingFreq, "", "Richonguzman / CA2RXU", "      " + version, 4000);
     #ifdef HAS_TFT
