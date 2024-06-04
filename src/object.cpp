@@ -77,10 +77,10 @@ namespace APRS {
         auto buffer_offset = write_aprs_metadata(buffer, sizeof(buffer), aprs_metadata);
         buffer_offset += write_aprs_object_payload(buffer+buffer_offset, sizeof(buffer)-buffer_offset, object_info);
         if (buffer_offset == sizeof(buffer)) {
-            show_display("[ERROR]", "buffer overrun: aborted", 0);
+            show_display("[ERROR]", "buffer overrun: aborted", "");
             return TooLong;
         }
-        show_display("[TX]", buffer, 0);
+        show_display("[TX]", buffer, "");
         LoRa_Utils::sendNewPacket(buffer);
         return Success;
     }
@@ -88,6 +88,53 @@ namespace APRS {
         std::vector<APRS::Object> registered_objects = std::vector<APRS::Object>();
         char const* const object_basename = "OBJECT";
 
+        class Hex {
+            public:
+            char hex[16];
+            static
+            Hex make_hex() {
+                Hex return_value = {0};
+                for (int i=0; i<10; i++)
+                    return_value.hex[i] = static_cast<char>(static_cast<int>('0') + i);
+                for (int i=0; i<6; i++)
+                    return_value.hex[10+i] = static_cast<char>(static_cast<int>('A') + i);
+                return return_value;
+            }
+            constexpr
+            char as_hex(int i) {
+                return this->hex[i];
+            }
+        };
+
+        Hex hex = Hex::make_hex();
+        int preplaned_object_index = 0;
+
+        void place_preplaned() {
+            char object_name[10];
+            char callsign[7];
+            int  ssid = 0;
+            // tracker callsign, SSID as hex, object serial number
+            sscanf(currentBeacon->callsign.c_str(), "%[^-]-%2d", callsign, &ssid);
+            snprintf(object_name, sizeof(object_name), "%-6s%c%02d", callsign, hex.as_hex(ssid), preplaned_object_index++);
+            APRS::Object object {
+                    .name = object_name,
+                    .comment = "",
+                    .latitude = gps.location.lat(),
+                    .longtitude = gps.location.lng(),
+                    .is_live = true,
+                    .hour = gps.time.hour(),
+                    .minute = gps.time.minute(),
+                    .second = gps.time.second(),
+                    .overlay = '/',
+                    .symbol = '[' // todo: change
+            };
+            APRS::publish_object({
+                    .from = currentBeacon->callsign,
+                    .to = "APRS",
+                    .path = {Config.path}
+                }, object);
+            registered_objects.emplace_back(object);
+        }
         void place() {
             char object_name[10];
             snprintf(object_name, sizeof(object_name), "%6s%03d", object_basename, registered_objects.size());
