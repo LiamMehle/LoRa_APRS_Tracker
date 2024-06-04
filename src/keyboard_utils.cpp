@@ -6,9 +6,8 @@
 #include "winlink_utils.h"
 #include "station_utils.h"
 #include "configuration.h"
-#include "button_utils.h"
 #include "power_utils.h"
-#include "pins_config.h"
+#include "boards_pinout.h"
 #include "msg_utils.h"
 #include "display.h"
 
@@ -331,7 +330,7 @@ namespace KEYBOARD_Utils {
             statusState  = true;
             statusTime = millis();
             winlinkCommentState = false;
-            show_display("__ INFO __", "", "  CHANGING CALLSIGN!", "", "-----> " + Config.beacons[myBeaconsIndex].callsign, 2000);
+            show_display("__ INFO __", "", "  CHANGING CALLSIGN!", "", "-----> " + Config.beacons[myBeaconsIndex].callsign, "", 2000);
             STATION_Utils::saveIndex(0, myBeaconsIndex);
             if (menuDisplay == 200) {
                 menuDisplay = 20;
@@ -339,14 +338,14 @@ namespace KEYBOARD_Utils {
         } else if ((menuDisplay >= 1 && menuDisplay <= 3) || (menuDisplay >= 11 &&menuDisplay <= 13) || (menuDisplay >= 20 && menuDisplay <= 27) || (menuDisplay >= 30 && menuDisplay <= 31)) {
             menuDisplay = menuDisplay * 10;
         } else if (menuDisplay == 10) {
-            MSG_Utils::loadMessagesFromMemory("APRS");
+            MSG_Utils::loadMessagesFromMemory(0);
             if (MSG_Utils::warnNoAPRSMessages()) {
                 menuDisplay = 10;
             } else {
                 menuDisplay = 100;
             }
         } else if (menuDisplay == 120) {
-            MSG_Utils::deleteFile("APRS");
+            MSG_Utils::deleteFile(0);
             show_display("___INFO___", "", "ALL MESSAGES DELETED!", 2000);
             MSG_Utils::loadNumMessages();
             menuDisplay = 12;
@@ -354,21 +353,21 @@ namespace KEYBOARD_Utils {
             if (keyDetected) {
                 menuDisplay = 1300;
             } else {
-                show_display(" APRS Thu.", "Sending:", "Happy #APRSThursday", "from LoRa Tracker 73!", 2000);
+                show_display(" APRS Thu.", "Sending:", "Happy #APRSThursday", "from LoRa Tracker 73!", "", "", 2000);
                 MSG_Utils::addToOutputBuffer(0, "ANSRVR", "CQ HOTG Happy #APRSThursday from LoRa Tracker 73!");
             }
         } else if (menuDisplay == 131) {
             if (keyDetected) {
                 menuDisplay = 1310;
             } else {
-                show_display(" APRS Thu.", "Sending:", "Happy #APRSThursday", "from LoRa Tracker 73!", 2000);
+                show_display(" APRS Thu.", "Sending:", "Happy #APRSThursday", "from LoRa Tracker 73!", "", "", 2000);
                 MSG_Utils::addToOutputBuffer(0, "APRSPH" , "HOTG Happy #APRSThursday from LoRa Tracker 73!");
             }
         } else if (menuDisplay == 132) {
-            show_display(" APRS Thu.", "", "   Unsubscribe", "   from APRS Thursday", 2000);
+            show_display(" APRS Thu.", "", "   Unsubscribe", "   from APRS Thursday", "", "", 2000);
             MSG_Utils::addToOutputBuffer(0, "ANSRVR", "U HOTG");
         } else if (menuDisplay == 133) {
-            show_display(" APRS Thu.", "", "  Keep Subscribed" ,"  for 12hours more", 2000);
+            show_display(" APRS Thu.", "", "  Keep Subscribed" ,"  for 12hours more", "", "", 2000);
             MSG_Utils::addToOutputBuffer(0, "ANSRVR", "K HOTG");
         }
 
@@ -393,15 +392,15 @@ namespace KEYBOARD_Utils {
                 screenBrightness = 1;
             }
         } else if (menuDisplay == 240) {
-            show_display("_STATUS___", "", "WRITE STATUS","STILL IN DEVELOPMENT!", 2000); /////////////////////////
+            show_display("_STATUS___", "", "WRITE STATUS","STILL IN DEVELOPMENT!", "", "", 2000); /////////////////////////
         } else if (menuDisplay == 241) {
-            show_display("_STATUS___", "", "SELECT STATUS","STILL IN DEVELOPMENT!", 2000); /////////////////////////
+            show_display("_STATUS___", "", "SELECT STATUS","STILL IN DEVELOPMENT!", "", "", 2000); /////////////////////////
         } else if (menuDisplay == 250) {
-            show_display("_NOTIFIC__", "", "NOTIFICATIONS","STILL IN DEVELOPMENT!", 2000); /////////////////////////
+            show_display("_NOTIFIC__", "", "NOTIFICATIONS","STILL IN DEVELOPMENT!", "", "", 2000); /////////////////////////
         } 
 
         else if (menuDisplay == 4) {
-            logger.log(logging::LoggerLevel::LOGGER_LEVEL_DEBUG, "Loop", "%s", "wrl");
+            logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Loop", "%s", "wrl");
             MSG_Utils::addToOutputBuffer(0, "CA2RXU-15", "wrl");
         }
 
@@ -411,7 +410,7 @@ namespace KEYBOARD_Utils {
             WINLINK_Utils::login();
             menuDisplay = 500;
         } else if (menuDisplay == 51) {
-            MSG_Utils::loadMessagesFromMemory("WLNK");
+            MSG_Utils::loadMessagesFromMemory(1);
             if (MSG_Utils::warnNoWLNKMails()) {
                 menuDisplay = 51;
             } else {
@@ -433,7 +432,7 @@ namespace KEYBOARD_Utils {
         } else if (menuDisplay == 5010) {
             menuDisplay = 50100;
         } else if (menuDisplay == 50100) {
-            MSG_Utils::loadMessagesFromMemory("WLNK");
+            MSG_Utils::loadMessagesFromMemory(1);
             if (MSG_Utils::warnNoWLNKMails()) {
                 menuDisplay = 50100;
             } else {
@@ -442,7 +441,7 @@ namespace KEYBOARD_Utils {
         } else if (menuDisplay == 50110) {
             menuDisplay = 50111;
         } else if (menuDisplay == 50111) {
-            MSG_Utils::deleteFile("WLNK");
+            MSG_Utils::deleteFile(1);
             show_display("___INFO___", "", " ALL MAILS DELETED!", 2000);
             MSG_Utils::loadNumMessages();
             if (winlinkStatus == 0) {
@@ -489,33 +488,33 @@ namespace KEYBOARD_Utils {
         } else if (menuDisplay == 60) {
             if (Config.notification.ledFlashlight) {
                 if (flashlight) {
-                    show_display("__EXTRAS__", "","     Flashlight","   Status --> OFF","", 2000);
+                    show_display("__EXTRAS__", "","     Flashlight","   Status --> OFF", "", "", 2000);
                     flashlight = false;
                 } else {
-                    show_display("__EXTRAS__", "","     Flashlight","   Status --> ON","", 2000);
+                    show_display("__EXTRAS__", "","     Flashlight","   Status --> ON", "", "", 2000);
                     flashlight = true;
                 }
             } else {
-                show_display("__EXTRAS__", "","     Flashlight","NOT ACTIVE IN CONFIG!","", 2000);
+                show_display("__EXTRAS__", "","     Flashlight","NOT ACTIVE IN CONFIG!", "", "", 2000);
             }
         } else if (menuDisplay == 61) {
             if (digirepeaterActive) {
-                show_display("__EXTRAS__", "","   DigiRepeater","   Status --> OFF","", 2000);
-                logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Main", "%s", "DigiRepeater OFF");
+                show_display("__EXTRAS__", "","   DigiRepeater","   Status --> OFF", "", "", 2000);
+                logger.log(logging::LoggerLevel::LOGGER_LEVEL_WARN, "Main", "%s", "DigiRepeater OFF");
                 digirepeaterActive = false;
             } else {
-                show_display("__EXTRAS__", "","   DigiRepeater","   Status --> ON","", 2000);
-                logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Main", "%s", "DigiRepeater ON");
+                show_display("__EXTRAS__", "","   DigiRepeater","   Status --> ON","", "", 2000);
+                logger.log(logging::LoggerLevel::LOGGER_LEVEL_WARN, "Main", "%s", "DigiRepeater ON");
                 digirepeaterActive = true;
             }
         } else if (menuDisplay == 62) {
             if (sosActive) {
-                show_display("__EXTRAS__", "","       S.O.S.","   Status --> OFF","", 2000);
-                logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Main", "%s", "S.O.S Mode OFF");
+                show_display("__EXTRAS__", "","       S.O.S.","   Status --> OFF", "", "", 2000);
+                logger.log(logging::LoggerLevel::LOGGER_LEVEL_WARN, "Main", "%s", "S.O.S Mode OFF");
                 sosActive = false;
             } else {
-                show_display("__EXTRAS__", "","       S.O.S.","   Status --> ON","", 2000);
-                logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Main", "%s", "S.O.S Mode ON");
+                show_display("__EXTRAS__", "","       S.O.S.","   Status --> ON", "", "", 2000);
+                logger.log(logging::LoggerLevel::LOGGER_LEVEL_WARN, "Main", "%s", "S.O.S Mode ON");
                 sosActive = true;
             }
         } else if (menuDisplay == 63) {
@@ -851,7 +850,7 @@ namespace KEYBOARD_Utils {
             keyboardConnected = true;
             logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Main", "Keyboard Connected to I2C");
         } else {
-            logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Main", "No Keyboard Connected to I2C");
+            logger.log(logging::LoggerLevel::LOGGER_LEVEL_DEBUG, "Main", "No Keyboard Connected to I2C");
         }
     }
 

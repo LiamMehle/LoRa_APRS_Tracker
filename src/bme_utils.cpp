@@ -1,6 +1,5 @@
 #include "bme_utils.h"
 #include "configuration.h"
-#include "gps_utils.h"
 #include "display.h"
 #include <logger.h>
 
@@ -18,11 +17,11 @@ uint8_t     wxModuleAddress     = 0x00;
 
 
 Adafruit_BME280     bme280;
-Adafruit_BME680     bme680;
 #ifdef HELTEC_V3_GPS
 Adafruit_BMP280     bmp280(&Wire1);
 #else
 Adafruit_BMP280     bmp280;
+Adafruit_BME680     bme680;
 #endif
 
    
@@ -40,6 +39,7 @@ namespace BME_Utils {
             err = Wire.endTransmission();
             #endif
             if (err == 0) {
+                //Serial.println(addr); this shows any connected board to I2C
                 if (addr == 0x76 || addr == 0x77) {
                     wxModuleAddress = addr;
                     return;
@@ -59,13 +59,6 @@ namespace BME_Utils {
                         wxModuleType = 1;
                         wxModuleFound = true;
                     } 
-                    if (!wxModuleFound) {
-                        if (bme680.begin(wxModuleAddress, &Wire1)) {
-                            logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "BME", " BME680 sensor found");
-                            wxModuleType = 3;
-                            wxModuleFound = true;
-                        }
-                    }
                 #else
                     if (bme280.begin(wxModuleAddress)) {
                         logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "BME", " BME280 sensor found");
@@ -88,8 +81,8 @@ namespace BME_Utils {
                     }
                 }
                 if (!wxModuleFound) {
-                    show_display("ERROR", "", "BME/BMP sensor active", "but no sensor found...", "", 2000);
-                    logger.log(logging::LoggerLevel::LOGGER_LEVEL_ERROR, "BME", " BME/BMP sensor Active in config but not found! Check Wiring");
+                    show_display("ERROR", "BME/BMP sensor active", "but no sensor found...", 2000);
+                    logger.log(logging::LoggerLevel::LOGGER_LEVEL_WARN, "BME", " BME/BMP sensor Active in config but not found! Check Wiring");
                 } else {
                     switch (wxModuleType) {
                         case 1:
@@ -110,11 +103,13 @@ namespace BME_Utils {
                             logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "BMP", " BMP280 Module init done!");
                             break;
                         case 3:
-                            bme680.setTemperatureOversampling(BME680_OS_1X);
-                            bme680.setHumidityOversampling(BME680_OS_1X);
-                            bme680.setPressureOversampling(BME680_OS_1X);
-                            bme680.setIIRFilterSize(BME680_FILTER_SIZE_0);
-                            logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "BME", " BMP680 Module init done!");
+                            #ifndef HELTEC_V3_GPS
+                                bme680.setTemperatureOversampling(BME680_OS_1X);
+                                bme680.setHumidityOversampling(BME680_OS_1X);
+                                bme680.setPressureOversampling(BME680_OS_1X);
+                                bme680.setIIRFilterSize(BME680_FILTER_SIZE_0);
+                                logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "BME", " BMP680 Module init done!");
+                            #endif
                             break;
                     }
                 }
@@ -122,23 +117,23 @@ namespace BME_Utils {
         }
     }
 
-    String generateTempString(float bmeTemp, String type) {
+    String generateTempString(float bmeTemp, uint8_t type) {
         String strTemp;
-        if (type=="OLED") {
+        if (type == 1) {    // OLED
             strTemp = String((int)bmeTemp);
         } else {
             strTemp = String((int)((bmeTemp * 1.8) + 32));
         }
         switch (strTemp.length()) {
             case 1:
-                if (type=="OLED") {
+                if (type == 1) {
                     return "  " + strTemp;
                 } else {
                     return "00" + strTemp;
                 }
                 break;
             case 2:
-                if (type=="OLED") {
+                if (type == 1) {
                     return " " + strTemp;
                 } else {
                     return "0" + strTemp;
@@ -152,12 +147,12 @@ namespace BME_Utils {
         }
     }
 
-    String generateHumString(float bmeHum, String type) {
+    String generateHumString(float bmeHum, uint8_t type) {
         String strHum;
         strHum = String((int)bmeHum);
         switch (strHum.length()) {
             case 1:
-                if (type=="OLED") {
+                if (type == 1) {
                     return " " + strHum;
                 } else {
                     return "0" + strHum;
@@ -168,7 +163,7 @@ namespace BME_Utils {
                 break;
             case 3:
                 if ((int)bmeHum == 100) {
-                    if (type=="OLED") {
+                    if (type == 1) {
                         return "  ";
                     } else {
                         return "00";
@@ -182,36 +177,36 @@ namespace BME_Utils {
         }
     }
 
-    String generatePresString(float bmePress, String type) {
-        String strPress;
-        strPress = String((int)bmePress);
+    String generatePresString(float bmePress, uint8_t type) {
+        String strPress = String((int)bmePress);
+        String decPress = String(int((bmePress - int(bmePress)) * 10));
         switch (strPress.length()) {
             case 1:
-                if (type=="OLED") {
+                if (type == 1) {
                     return "000" + strPress;
                 } else {
-                    return "000" + strPress + "0";
+                    return "000" + strPress + decPress;
                 }
                 break;
             case 2:
-                if (type=="OLED") {
+                if (type == 1) {
                     return "00" + strPress;
                 } else {
-                    return "00" + strPress + "0";
+                    return "00" + strPress + decPress;
                 }
                 break;
             case 3:
-                if (type=="OLED") {
+                if (type == 1) {
                     return "0" + strPress;
                 } else {
-                    return "0" + strPress + "0";
+                    return "0" + strPress + decPress;
                 }
                 break;
             case 4:
-                if (type=="OLED") {
+                if (type == 1) {
                     return strPress;
                 } else {
-                    return strPress + "0";
+                    return strPress + decPress;
                 }
                 break;
             case 5:
@@ -222,7 +217,7 @@ namespace BME_Utils {
         }
     }
 
-    String readDataSensor(String type) {
+    String readDataSensor(uint8_t type) {
         String wx, tempStr, humStr, presStr;
         uint32_t lastReading = millis() - bmeLastReading;
         if (lastReading > 60 * 1000) {
@@ -240,14 +235,16 @@ namespace BME_Utils {
                     newHum      = 0;
                     break;
                 case 3: // BME680
-                    bme680.performReading();
-                    delay(50);
-                    if (bme680.endReading()) {
-                        newTemp     = bme680.temperature;
-                        newPress    = (bme680.pressure / 100.0F);
-                        newHum      = bme680.humidity;
-                        newGas      = bme680.gas_resistance / 1000.0; // in Kilo ohms
-                    }
+                    #ifndef HELTEC_V3_GPS
+                        bme680.performReading();
+                        delay(50);
+                        if (bme680.endReading()) {
+                            newTemp     = bme680.temperature;
+                            newPress    = (bme680.pressure / 100.0F);
+                            newHum      = bme680.humidity;
+                            newGas      = bme680.gas_resistance / 1000.0; // in Kilo ohms
+                        }
+                    #endif
                     break;
             }
             bmeLastReading = millis();
@@ -255,7 +252,7 @@ namespace BME_Utils {
         
         if (isnan(newTemp) || isnan(newHum) || isnan(newPress)) {
             Serial.println("BME/BMP Module data failed");
-            if (type == "OLED") {
+            if (type == 1) {
                 wx = " - C    - %    - hPa";
             } else {
                 wx = ".../...g...t...r...p...P...h..b.....";
@@ -269,16 +266,32 @@ namespace BME_Utils {
                 humStr  = "..";
             }
             presStr = generatePresString(newPress + (Config.bme.heightCorrection/CORRECTION_FACTOR), type);
-            if (type == "OLED") {
+            if (type == 1) {
                 if (wxModuleType == 1 || wxModuleType == 3) {
-                    wx = tempStr + "C   " + humStr + "%   " + presStr + "hPa";
+                    wx = tempStr;
+                    wx += "C   ";
+                    wx += humStr;
+                    wx += "%   ";
+                    wx += presStr;
+                    wx += "hPa";
                 } else if (wxModuleType == 2) {
-                    wx = "T: " + tempStr + "C " + "P: " + presStr + "hPa";
+                    wx = "T: ";
+                    wx += tempStr;
+                    wx += "C P: ";
+                    wx += presStr;
+                    wx += "hPa";
                 }
             } else {
-                wx = ".../...g...t" + tempStr + "r...p...P...h" + humStr + "b" + presStr;
+                wx = ".../...g...t";
+                wx += tempStr;
+                wx += "r...p...P...h";
+                wx += humStr;
+                wx += "b";
+                wx += presStr;
                 if (wxModuleType == 3) {
-                    wx += "Gas: " + String(newGas) + "Kohms";
+                    wx += "Gas: ";
+                    wx += String(newGas);
+                    wx += "Kohms";
                 }
             }
             return wx;

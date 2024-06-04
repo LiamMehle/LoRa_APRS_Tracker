@@ -59,6 +59,8 @@ ____________________________________________________
 ____________________________________________________
 ## Timeline (Versions):
 
+- 2024.05.21 WEMOS ESP32 Battery Holder + LoRa SX1278 + GPS Module support added.
+- 2024.05.16 all boards now work with Radiolib (LoRa) library from @jgromes.
 - 2024.05.13 BME modules will be autodetected (I2C Address and if it is BME280/BMP280/BME680).
 - 2024.05.10 PacketBuffer for Rx (25 Seg) and Tx outputPacketBuffer for sending with ACK Request.
 - 2024.05.07 HELTEC V3 and Wireless Tracker Battery Measurements at 30seg to avoid accelerated discharge.

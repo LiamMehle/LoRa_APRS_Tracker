@@ -4,7 +4,7 @@ namespace AX25_Utils {
 
     AX25Frame decodedFrame;
 
-    String decodeFrame(String frame) {
+    String decodeFrame(const String& frame) {
         String packet = "";
         for (int a = 0; a < 6; a ++) {
             uint16_t shiftedValue = frame[a] >> 1;
@@ -17,12 +17,13 @@ namespace AX25_Utils {
         }
         byte ssid = (frame[6]>>1) & 0x0f;
         if (String(ssid) != "0") {
-            packet += "-" + String(ssid);
+            packet += "-";
+            packet += String(ssid);
         }
         return packet;
     }
 
-    bool decodeAX25(String frame, int frameSize, AX25Frame* decodedFrame) {
+    bool decodeAX25(const String& frame, int frameSize, AX25Frame* decodedFrame) {
         if ((frameSize < 14) || (frame[0] != KissChar::Fend && frame[1] != KissCmd::Data && frame[frameSize - 1] != KissChar::Fend)) {
             return false;
         }
@@ -32,31 +33,33 @@ namespace AX25_Utils {
                 payloadFrameStart = i+1;
             }
         }
-        decodedFrame->tocall = frame.substring(2, 9);      // Extract destination address
-        decodedFrame->sender = frame.substring(9, 16);     // Extract source address
+        decodedFrame->tocall    = frame.substring(2, 9);      // Extract destination address
+        decodedFrame->sender    = frame.substring(9, 16);     // Extract source address
         if (payloadFrameStart >= 21) {                    // is there path1?
             decodedFrame->path1 = frame.substring(16, 23);
         }
         if (payloadFrameStart >= 28) {                    // is there path2?
             decodedFrame->path2 = frame.substring(23, 30);
         }
-        decodedFrame->control = frame.substring(payloadFrameStart-1, payloadFrameStart);   // Extract control information  // 0x03
-        decodedFrame->pid = frame.substring(payloadFrameStart, payloadFrameStart + 1);       // Extract pid information      // 0xF0
-        decodedFrame->payload = frame.substring(payloadFrameStart + 1, frameSize - 1);         // Extract payload
+        decodedFrame->control   = frame.substring(payloadFrameStart-1, payloadFrameStart);   // Extract control information  // 0x03
+        decodedFrame->pid       = frame.substring(payloadFrameStart, payloadFrameStart + 1);       // Extract pid information      // 0xF0
+        decodedFrame->payload   = frame.substring(payloadFrameStart + 1, frameSize - 1);         // Extract payload
         return true;
     }
 
-    String AX25FrameToLoRaPacket(String frame) {
+    String AX25FrameToLoRaPacket(const String& frame) {
         //Serial.println(frame);
         if (decodeAX25(frame, frame.length(), &decodedFrame)) {
             String packetToLoRa = "";
             packetToLoRa = decodeFrame(decodedFrame.sender) + ">" + decodeFrame(decodedFrame.tocall);
 
             if (decodedFrame.path1[0] != 0) {
-                packetToLoRa += "," + decodeFrame(decodedFrame.path1);
+                packetToLoRa += ",";
+                packetToLoRa += decodeFrame(decodedFrame.path1);
             }
             if (decodedFrame.path2[0] != 0) {
-                packetToLoRa += "," + decodeFrame(decodedFrame.path2);
+                packetToLoRa += ",";
+                packetToLoRa += decodeFrame(decodedFrame.path2);
             }
             packetToLoRa += ":";
             packetToLoRa += decodedFrame.payload;
@@ -66,7 +69,8 @@ namespace AX25_Utils {
         }
     }
 
-    String frameCleaning(String frame) {
+    String frameCleaning(const String& frameToClean) {
+        String frame = frameToClean;
         if (frame.length() > 6) {
             frame = frame.substring(0, 6);
         } else if (frame.length() < 6) {
@@ -77,15 +81,16 @@ namespace AX25_Utils {
         return frame;
     }
 
-    std::string intToBinaryString(int value, int bitLength) {
+    std::string intToBinaryString(uint8_t value, uint8_t bitLength) {
         std::string result = "";
+        //result.reserve(bitLength);
         for (int i = bitLength - 1; i >= 0; i--) {
             result += ((value >> i) & 1) ? '1' : '0';
         }
         return result;
     }
 
-    String encodeAX25Address(String frame, uint8_t type, bool lastAddress) {
+    String encodeAX25Address(const String& frame, uint8_t type, bool lastAddress) {
         String packet = "";
         String address;
         std::string concatenatedBinary;
@@ -115,20 +120,20 @@ namespace AX25_Utils {
         return packet;
     }
 
-    String LoRaPacketToAX25Frame(String packet) {
-        String encodedPacket = "";
-        String tocall = "";
-        String sender = packet.substring(0, packet.indexOf(">"));
-        bool lastAddress = false;
-        String payload = packet.substring(packet.indexOf(":") + 1);
-        String temp = packet.substring(packet.indexOf(">") + 1, packet.indexOf(":"));
+    String LoRaPacketToAX25Frame(const String& packet) {
+        String encodedPacket    = "";
+        String tocall           = "";
+        String sender           = packet.substring(0, packet.indexOf(">"));
+        bool lastAddress        = false;
+        String payload          = packet.substring(packet.indexOf(":") + 1);
+        String temp             = packet.substring(packet.indexOf(">") + 1, packet.indexOf(":"));
 
         if (temp.indexOf(",")>0) {    
-            tocall = temp.substring(0, temp.indexOf(","));
-            temp = temp.substring(temp.indexOf(",") + 1);
+            tocall      = temp.substring(0, temp.indexOf(","));
+            temp        = temp.substring(temp.indexOf(",") + 1);
         } else {
-            tocall = temp;
-            temp = "";
+            tocall      = temp;
+            temp        = "";
             lastAddress = true;
         }
         encodedPacket = encodeAX25Address(tocall, 1, false);
@@ -138,11 +143,11 @@ namespace AX25_Utils {
             int repeatedPath = 0;
             String address = "";
             if (temp.indexOf(",") > 0) {
-                address = temp.substring(0, temp.indexOf(","));
-                temp = temp.substring(temp.indexOf(",") + 1);
+                address     = temp.substring(0, temp.indexOf(","));
+                temp        = temp.substring(temp.indexOf(",") + 1);
             } else {
-                address = temp;
-                temp = "";
+                address     = temp;
+                temp        = "";
                 lastAddress = true;        
             }
             if (address.indexOf("*") > 0) {
