@@ -19,7 +19,6 @@
     #define RADIO_CS_PIN        18  // CS  --> NSS
     #define RADIO_RST_PIN       23
     #define RADIO_BUSY_PIN      26  // IRQ --> DIO0
-    #define BUTTON2_PIN         GPIO_NUM_13
 #endif
 
 
@@ -38,6 +37,7 @@
     #define RADIO_RST_PIN       23
     #define RADIO_DIO1_PIN      33
     #define RADIO_BUSY_PIN      32
+    #define BUTTON2_PIN         GPIO_NUM_13
 #endif
 
 
