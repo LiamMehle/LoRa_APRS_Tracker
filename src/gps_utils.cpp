@@ -57,10 +57,9 @@ namespace GPS_Utils {
     }
 
     void getData() {
-        if (disableGPS) return;
-        while (neo6m_gps.available() > 0) {
+        // if (disableGPS) return;
+        while (neo6m_gps.available())
             gps.encode(neo6m_gps.read());
-        }
     }
 
     void setDateFromData() {

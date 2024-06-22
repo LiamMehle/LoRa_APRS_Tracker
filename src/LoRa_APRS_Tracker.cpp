@@ -93,8 +93,13 @@ APRSPacket                          lastReceivedPacket;
 logging::Logger                     logger;
 //#define DEBUG
 
+#ifdef GPS_TIMER
+StaticTimer_t gps_timer;
+#endif
 void setup() {
+    #ifndef NOLOG
     Serial.begin(115200);
+    #endif
     
     #ifndef DEBUG
         logger.setDebugLevel(logging::LoggerLevel::LOGGER_LEVEL_INFO);
@@ -141,6 +146,18 @@ void setup() {
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_DEBUG, "Main", "Smart Beacon is: %s", Utils::getSmartBeaconState());
     logger.log(logging::LoggerLevel::LOGGER_LEVEL_INFO, "Main", "Setup Done!");
     menuDisplay = 0;
+
+#ifdef GPS_TIMER
+    xTimerCreateStatic("gps", 100, true, nullptr, [](StaticTimer_t const self){
+        GPS_Utils::getData();
+        GPS_Utils::setDateFromData();
+    }, &gps_timer);
+#else
+    neo6m_gps.onReceive([]{
+        GPS_Utils::getData();
+        GPS_Utils::setDateFromData();
+    }, false);
+#endif
 }
 
 void loop() {
@@ -169,11 +186,6 @@ void loop() {
         KEYBOARD_Utils::mouseRead();
     #endif
 
-    GPS_Utils::getData();
-    bool gps_time_update = gps.time.isUpdated();
-    bool gps_loc_update  = gps.location.isUpdated();
-    GPS_Utils::setDateFromData();
-
     MSG_Utils::checkReceivedMessage(LoRa_Utils::receivePacket());
     MSG_Utils::processOutputBuffer();
     MSG_Utils::clean25SegBuffer();
@@ -189,6 +201,8 @@ void loop() {
     }
 
     int currentSpeed = (int) gps.speed.kmph();
+    bool gps_time_update = gps.time.isValid();
+    bool gps_loc_update  = gps.location.isValid();
 
     if (gps_loc_update) {
         Utils::checkStatus();
