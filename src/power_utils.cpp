@@ -127,7 +127,7 @@ namespace POWER_Utils {
         }
     }
 
-    double getBatteryChargeDischargeCurrent() {
+    int getBatteryChargeDischargeCurrent() {
         #if defined(TTGO_T_Beam_V0_7) || defined(ESP32_DIY_LoRa_GPS) || defined(TTGO_T_LORA32_V2_1_GPS) || defined(TTGO_T_LORA32_V2_1_TNC) || defined(ESP32_DIY_1W_LoRa_GPS) || defined(HELTEC_V3_GPS) || defined(OE5HWN_MeshCom) || defined(ESP32_C3_DIY_LoRa_GPS) || defined(HELTEC_WIRELESS_TRACKER) || defined(TTGO_T_DECK_GPS) || defined(WEMOS_ESP32_Bat_LoRa_GPS)
             return 0;
         #endif
