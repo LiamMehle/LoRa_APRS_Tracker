@@ -135,7 +135,7 @@ namespace POWER_Utils {
             if (PMU.isCharging()) {
                 return PMU.getBatteryChargeCurrent();
             }
-            return -1.0 * PMU.getBattDischargeCurrent();
+            return -1 * PMU.getBattDischargeCurrent();
         #endif
         #ifdef HAS_AXP2101
             return PMU.getBatteryPercent();
