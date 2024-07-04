@@ -61,6 +61,8 @@ namespace MENU_Utils {
                 return "no BT";
         }
     }
+    void showOnScreen() noexcept {
+
 
     const String checkProcessActive(const bool process) {
         if (process) {
