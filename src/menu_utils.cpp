@@ -9,6 +9,7 @@
 #include "power_utils.h"
 #include "menu_utils.h"
 #include "msg_utils.h"
+#include "gps_utils.h"
 #include "bme_utils.h"
 #include "display.h"
 #include "utils.h"
@@ -33,6 +34,7 @@ extern bool                 bluetoothActive;
 extern bool                 displayEcoMode;
 extern bool                 screenBrightness;
 extern bool                 disableGPS;
+extern bool                 showHumanHeading;
 extern APRSPacket           lastReceivedPacket;
 
 extern uint8_t              winlinkStatus;
@@ -488,15 +490,20 @@ namespace MENU_Utils {
                     show_display("_WINLINK_>", "  Login" , "  Read SavedMails(" + String(MSG_Utils::getNumWLNKMails()) + ")", "  Delete SavedMails", "> Wnlk Comment (" + checkProcessActive(winlinkCommentState) + ")" , lastLine);
                     break;
 
-                case 500:    // 5.Winlink ---> Login
-                    show_display("_WINLINK_>", "" , "Login Initiation ...", "Challenge -> waiting", "" , "");
-                    break;
-                case 501:    // 5.Winlink ---> Login
-                    show_display("_WINLINK_>", "" , "Login Initiation ...", "Challenge -> sended", "" , "");
-                    break;
-                case 502:    // 5.Winlink ---> Login
-                    show_display("_WINLINK_>", "" , "Login Initiation ...", "Challenge -> ack ...", "" , "");
-                    break;
+                    show_display(firstLineDecoder, "GPS  " + String(lastReceivedPacket.latitude,2) + " " + String(lastReceivedPacket.longitude,2), courseSpeedAltitude, "D:" + String(distanceKm) + "km    " + String(courseTo,0), pathDec, "< RSSI:" + String(lastReceivedPacket.rssi) + " SNR:" + String(lastReceivedPacket.snr));
+                } else if (lastReceivedPacket.type==1) {    // message
+                    show_display(firstLineDecoder, "ADDRESSEE: " + lastReceivedPacket.addressee, "MSG:  " + lastReceivedPacket.message, "", "", "< RSSI:" + String(lastReceivedPacket.rssi) + " SNR:" + String(lastReceivedPacket.snr));
+                } else if (lastReceivedPacket.type==2) {    // status
+                    show_display(firstLineDecoder, "-------STATUS-------", lastReceivedPacket.message, "", "", "< RSSI:" + String(lastReceivedPacket.rssi) + " SNR:" + String(lastReceivedPacket.snr));
+                } else if (lastReceivedPacket.type==3) {    // telemetry
+                    show_display(firstLineDecoder, "------TELEMETRY------", "", "", "", "< RSSI:" + String(lastReceivedPacket.rssi) + " SNR:" + String(lastReceivedPacket.snr));
+                } else if (lastReceivedPacket.type==5) {    // object
+                    show_display(firstLineDecoder, "-------OBJECT-------", "", "", "", "< RSSI:" + String(lastReceivedPacket.rssi) + " SNR:" + String(lastReceivedPacket.snr));
+                }
+                break;
+            case 310:    //3.Stations ---> Near By Stations
+                show_display("NEAR BY >", STATION_Utils::getNearTracker(0), STATION_Utils::getNearTracker(1), STATION_Utils::getNearTracker(2), STATION_Utils::getNearTracker(3), "<Back");
+                break;
 
                 case 5000:   // WINLINK: List Pend. Mail //
                     show_display("WLNK__MENU", "  Write Mail" , "> List Pend. Mails", "  Downloaded Mails", "  Read Mail    (R#)", lastLine);
@@ -643,7 +650,12 @@ namespace MENU_Utils {
                         }
                     }
 
-                    #ifdef TTGO_T_LORA32_V2_1_TNC
+                #if defined(TTGO_T_LORA32_V2_1_TNC) || defined(TTGO_T_LORA32_V2_1_TNC_915)
+                secondRowMainMenu = "";
+                thirdRowMainMenu = "    LoRa APRS TNC";
+                fourthRowMainMenu = "";
+                #else
+                if (disableGPS) {
                     secondRowMainMenu = "";
                     thirdRowMainMenu = "    LoRa APRS TNC";
                     fourthRowMainMenu = "";
@@ -726,37 +738,43 @@ namespace MENU_Utils {
                     }
                     #endif
 
+                    fifthRowMainMenu = GPS_Utils::getCardinalDirection(gps.course.deg());
+                } else {
                     fifthRowMainMenu = "LAST Rx = ";
                     fifthRowMainMenu += MSG_Utils::getLastHeardTracker();
+                }                
+                if (showHumanHeading) {
 
-                    if (POWER_Utils::getBatteryInfoIsConnected()) {
-                        String batteryVoltage = POWER_Utils::getBatteryInfoVoltage();
-                        String batteryCharge = POWER_Utils::getBatteryInfoCurrent();
-                        #if defined(TTGO_T_Beam_V0_7) || defined(TTGO_T_LORA32_V2_1_GPS) || defined(TTGO_T_LORA32_V2_1_TNC) || defined(HELTEC_V3_GPS) || defined(HELTEC_WIRELESS_TRACKER) || defined(TTGO_T_DECK_GPS)
-                            sixthRowMainMenu = "Bat: ";
+                if (POWER_Utils::getBatteryInfoIsConnected()) {
+                    String batteryVoltage = POWER_Utils::getBatteryInfoVoltage();
+                    String batteryCharge = POWER_Utils::getBatteryInfoCurrent();
+                    #if defined(TTGO_T_Beam_V0_7) || defined(TTGO_T_LORA32_V2_1_GPS) || defined(TTGO_T_LORA32_V2_1_GPS_915) || defined(TTGO_T_LORA32_V2_1_TNC) || defined(TTGO_T_LORA32_V2_1_TNC_915) || defined(HELTEC_V3_GPS) || defined(HELTEC_WIRELESS_TRACKER) || defined(TTGO_T_DECK_GPS)
+					    sixthRowMainMenu = "Bat: ";
+                        sixthRowMainMenu += batteryVoltage;
+                        sixthRowMainMenu += "V";
+                    #endif
+                    #ifdef HAS_AXP192
+                        if (batteryCharge.toInt() == 0) {
+                            sixthRowMainMenu = "Battery Charged ";
                             sixthRowMainMenu += batteryVoltage;
                             sixthRowMainMenu += "V";
-                        #endif
-                        #if defined(TTGO_T_Beam_V1_0) || defined(TTGO_T_Beam_V1_0_SX1268)
-                            if (batteryCharge.toInt() == 0) {
-                                sixthRowMainMenu = "Battery Charged ";
-                                sixthRowMainMenu += batteryVoltage;
-                                sixthRowMainMenu += "V";
-                            } else if (batteryCharge.toInt() > 0) {
-                                sixthRowMainMenu = "Bat: ";
-                                sixthRowMainMenu += batteryVoltage;
-                                sixthRowMainMenu += "V (charging)";
-                            } else {
-                                sixthRowMainMenu = "Battery ";
-                                sixthRowMainMenu += batteryVoltage;
-                                sixthRowMainMenu += "V ";
-                                sixthRowMainMenu += batteryCharge;
-                                sixthRowMainMenu += "mA";
-                            }
-                        #endif
-                        #if defined(TTGO_T_Beam_V1_2) || defined(TTGO_T_Beam_V1_2_SX1262) || defined(TTGO_T_Beam_S3_SUPREME_V3)
-                            if (Config.notification.lowBatteryBeep && !POWER_Utils::isCharging() && batteryCharge.toInt() < lowBatteryPercent) {
-                                lowBatteryPercent = batteryCharge.toInt();
+                        } else if (batteryCharge.toInt() > 0) {
+                            sixthRowMainMenu = "Bat: ";
+                            sixthRowMainMenu += batteryVoltage;
+                            sixthRowMainMenu += "V (charging)";
+                        } else {
+                            sixthRowMainMenu = "Battery ";
+                            sixthRowMainMenu += batteryVoltage;
+                            sixthRowMainMenu += "V ";
+                            sixthRowMainMenu += batteryCharge;
+                            sixthRowMainMenu += "mA";
+                        }
+                    #endif
+                    #ifdef HAS_AXP2101
+                        if (Config.notification.lowBatteryBeep && !POWER_Utils::isCharging() && batteryCharge.toInt() < lowBatteryPercent) {
+                            lowBatteryPercent = batteryCharge.toInt();
+                            NOTIFICATION_Utils::lowBatteryBeep();
+                            if (batteryCharge.toInt() < 6) {
                                 NOTIFICATION_Utils::lowBatteryBeep();
                                 if (batteryCharge.toInt() < 6) {
                                     NOTIFICATION_Utils::lowBatteryBeep();

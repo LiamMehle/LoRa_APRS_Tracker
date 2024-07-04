@@ -62,6 +62,8 @@ String      messageText             = "";
 
 int         messagesIterator        = 0;
 
+bool        showHumanHeading        = false;
+
 bool        mouseUpState            = 0;
 bool        mouseDownState          = 0;
 bool        mouseLeftState          = 0;
@@ -427,7 +429,6 @@ namespace KEYBOARD_Utils {
                 show_display("_WINLINK_>", "", "  WLNK COMMENTs ON!", 2000);
             }
         } else if (menuDisplay == 5000) {
-            // reemplazar con buffer
             MSG_Utils::addToOutputBuffer(1, "WLNK-1", "L");
         } else if (menuDisplay == 5010) {
             menuDisplay = 50100;
@@ -533,6 +534,8 @@ namespace KEYBOARD_Utils {
         }
         if (menuDisplay == 0 && key == 13) {       // Main Menu
             menuDisplay = 1;      
+        } else if (menuDisplay == 0 && key == 8) {
+            showHumanHeading = !showHumanHeading;
         } else if (key == 27) {                           // ESC = return to Main Menu
             menuDisplay = 0;
             messagesIterator = 0;
