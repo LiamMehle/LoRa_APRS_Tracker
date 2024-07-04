@@ -20,7 +20,7 @@ namespace POWER_Utils {
 
     bool    isCharging();
     void    handleChargingLed();
-    double  getBatteryChargeDischargeCurrent();
+    int     getBatteryChargeDischargeCurrent();
     bool    isBatteryConnected();
     void    obtainBatteryInfo();
     void    batteryManager();
